@@ -2,7 +2,7 @@ import { Elysia } from "elysia";
 import cors from "@elysiajs/cors";
 import { jwt } from "@elysiajs/jwt";
 import { cookie } from "@elysiajs/cookie";
-import { routes } from "./routes";
+import routes from "./routes";
 
 const app = new Elysia()
   .use(cookie())
