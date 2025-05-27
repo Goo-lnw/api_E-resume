@@ -1,6 +1,6 @@
 import { Elysia } from "elysia";
 import { teacherController } from "../controllers/teacher.controller";
-import { teacherSchema } from "../schema/sql.schema";
+import { teacherSchema, UpdateTeacherSchema } from "../schema/sql.schema";
 
 export const TeacherRoutes = (app: Elysia) =>
   app
@@ -8,7 +8,7 @@ export const TeacherRoutes = (app: Elysia) =>
     .get("/teacher/:mail", teacherController.getTeacherEmail)
     .post("/teacher/create", teacherController.createTeacher, {
       body: teacherSchema,
-    });
+    }).patch("/teacher/edit", teacherController.editTeacher);
 // .post("/teachers/login", TeacherLoginController);
 
 export default TeacherRoutes;
