@@ -8,6 +8,8 @@ export const teacherSchema = t.Object({
   teacher_profile_image: t.String(),
 });
 
+
+
 export const LoginSchema = t.Object({
   email: t.String({ format: "email" }),
   password: t.String(),
