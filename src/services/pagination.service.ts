@@ -1,7 +1,6 @@
 import { pool } from "../utils/db";
 
 const getTotalCount = async (tableName: string): Promise<number> => {
-    
   const [rows]: any = await pool.query(`SELECT COUNT(*) as count FROM ??`, [
     tableName,
   ]);
@@ -30,5 +29,7 @@ const getPagination = async (
     totalPages: Math.ceil(total / limit),
   };
 };
+
+
 
 export { getPagination };
