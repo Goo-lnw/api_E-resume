@@ -1,4 +1,4 @@
-import { getUserEmail } from "../services/user.service";
+import { getUserByEmail } from "../services/user.service";
 export const UserController = {
   loginController: async ({ body, set, jwt }: any) => {
     try {
@@ -44,7 +44,7 @@ export const UserController = {
   registerController: async (req: any) => {
     try {
       const data = req.body;
-      const user = await getUserEmail(data.student_email);
+      const user = await getUserByEmail(data.student_email);
       // console.log("user in registerController:", user);
 
       if (Object.keys(user).length > 0) {
