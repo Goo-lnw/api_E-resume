@@ -22,7 +22,7 @@ export const teacherController = {
     return req.status(200, teacher);
   },
 
-  insertTeacher: async (req: any) => {
+  createTeacher: async (req: any) => {
     try {
       const data = req.body;
       try {
