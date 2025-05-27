@@ -1,5 +1,5 @@
 import { getPagination } from "../services/pagination.service";
-import { getUserEmail } from "../services/user.service";
+import { getUserByEmail } from "../services/user.service";
 import { pool } from "../utils/db";
 import { z } from "zod/v4";
 export const teacherController = {
@@ -15,7 +15,7 @@ export const teacherController = {
 
   getTeacherEmail: async (req: any) => {
     const email: string = req.params.mail;
-    const teacher: object = await getUserEmail(email);
+    const teacher: object = await getUserByEmail(email);
     if (Object.keys(teacher).length == 0) {
       return req.status(204, { message: "No teacher found" });
     }
