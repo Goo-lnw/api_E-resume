@@ -5,11 +5,11 @@ import { teacherSchema } from "../schema/sql.schema";
 export const TeacherRoutes = (app: Elysia) =>
   app
     .get("/teacher", teacherController.getTeacherController)
-    .get("/teacher/:mail", teacherController.getTeacherEmail)
-    .post("/teacher/create", teacherController.createTeacher, {
+    .get("/teacher/:mail", teacherController.getTeacherByEmail)
+    .post("/teacher/create", teacherController.createTeacherController, {
       body: teacherSchema,
     })
-    .patch("/teacher/edit", teacherController.editTeacher)
+    .patch("/teacher/edit/:id", teacherController.editTeacherController)
     .delete("/teacher/delete/:id", teacherController.deleteTeacher);
 // .post("/teachers/login", TeacherLoginController);
 

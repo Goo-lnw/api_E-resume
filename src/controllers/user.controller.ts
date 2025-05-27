@@ -40,7 +40,7 @@ export const UserController = {
     try {
       const data = req.body;
 
-      const user = await getUserByEmail(data.student_email);
+      const user = await getUserByEmail(data.student_email); //ถ้าเมลซ้ำกับตาราง teacher จะสร้างไม่ได้
       // console.log("user in registerController:", user);
 
       if (user && Object.keys(user).length > 0) {
@@ -78,13 +78,15 @@ export const UserController = {
   editUserController: async (req: any) => {
     try {
       const data = req.body;
-      // ถ้าค่่าไหนไม่มี จะไม่ถูกอัพเดท
+      const user_id: number = parseInt(req.params.id);
+      // ถ้าค่่าไหนไม่มี จะไม่ถูกอัพเดท ห้่ามส่ง stringว่าง "" มา ***โดยเฉพาะ password
+      // ถ้า edit password ส่งมาแต่ password ได้เลย ไม่ต้องส่งตัวอื่น
+      // หรือแยกเส้น password change เลยดี
       const User = z.object({
-        student_id: z.int(),
         student_name: z.string().nonempty().optional(),
         student_email: z.string().email().nonempty().optional(),
         student_phone: z.string().min(10).max(15).nonempty().optional(),
-        student_password: z.string().min(6).nonempty().optional(),
+        student_password: z.string().min(8).optional(),
         student_profile_image: z.string().nonempty().optional(),
       });
 
@@ -98,36 +100,40 @@ export const UserController = {
       }
 
       const validatedData: any = userResult.data;
-      const student_id = validatedData.student_id;
-      delete validatedData.student_id; // ตัด id ออก ไม่งั้นอาจมีการนำ id ไปใช้ใน "SET ?"
 
-      if (validatedData.student_password) {
+      if (validatedData.user_password) {
         // if contain password hash pass
-        const hashedPassword = await Bun.password.hash(validatedData.student_password);
-        validatedData["student_password"] = hashedPassword;
+        const hashedPassword = await Bun.password.hash(validatedData.user_password);
+        validatedData["user_password"] = hashedPassword;
       }
 
       const sql = `UPDATE student SET ? WHERE student_id = ?`;
-      const result = await pool.query(sql, [validatedData, student_id]);
+      const [result]: any = await pool.query(sql, [validatedData, user_id]);
 
-      return req.status(200, {
-        success: true,
-        message: "student edited successfully",
-        data: result,
-      });
-    } catch (error: any) {
-      if (error.code === "ER_DUP_ENTRY") {
-        console.error("Unexpected error: ", error);
-        return req.status(500, {
+
+      if (result.affectedRows == 0) {
+        return req.status(404, {
           success: false,
-          message: "duplicate Email",
+          message: "user id didn't found"
         });
       }
 
+      if (result.changedRows == 0) {
+        throw "No data changed";
+      }
+
+      return req.status(200, {
+        success: true,
+        message: "User edited successfully",
+        data: result,
+      });
+
+    } catch (error: any) {
       console.error("Unexpected error: ", error);
       return req.status(500, {
         success: false,
         message: "Unexpected error",
+        detail: error
       });
     }
   },
