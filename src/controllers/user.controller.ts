@@ -23,16 +23,7 @@ export const UserController = {
       const token = await jwt.sign({ email: users.member_email });
 
       return {
-        setCookie: {
-          token: {
-            value: token,
-            path: "/",
-            httpOnly: true,
-            secure: false,
-            sameSite: "lax",
-            maxAge: 60 * 60 * 24,
-          },
-        },
+        token,
         message: "Login successful",
         status: 200,
         data: users,
