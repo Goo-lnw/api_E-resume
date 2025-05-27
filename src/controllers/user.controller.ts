@@ -7,7 +7,7 @@ export const UserController = {
       const { email, password } = body;
 
       const users = await getUserByEmail(email);
-      if (!users || users.length === 0) {
+      if (!users || Object.keys(users).length === 0) {
         console.log("User not found:", email);
         set.status = 401;
         return { message: "Invalid credentials" };
@@ -42,7 +42,7 @@ export const UserController = {
       const user = await getUserByEmail(data.student_email);
       // console.log("user in registerController:", user);
 
-      if (Object.keys(user).length > 0) {
+      if (user && Object.keys(user).length > 0) {
         return { message: "User already exists", status: 409 };
       }
 
