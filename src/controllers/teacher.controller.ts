@@ -29,7 +29,10 @@ export const teacherController = {
       const data = req.body;
       const result = await insertTeacherService(data);
       if (!result) {
-        return { status: 400, message: "Failed to insert teacher" };
+        return req.status(204, { message: "Failed to insert teacher" });
+      }
+      if (!result.success) {
+        return req.status(409, { message: "Email already exists" });
       }
       return {
         status: 200,
