@@ -12,7 +12,7 @@ export const teacherController = {
     if (Object.keys(users).length == 0) {
       return req.status(204, { message: "No teacher found" });
     }
-    return users;
+    return users.data;
   },
 
   getTeacherEmail: async (req: any) => {
