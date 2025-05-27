@@ -1,6 +1,6 @@
 import { Elysia } from "elysia";
 import { teacherController } from "../controllers/teacher.controller";
-import { teacherSchema, UpdateTeacherSchema } from "../schema/sql.schema";
+import { teacherSchema } from "../schema/sql.schema";
 
 export const TeacherRoutes = (app: Elysia) =>
   app

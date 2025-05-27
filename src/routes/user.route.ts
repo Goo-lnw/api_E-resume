@@ -8,6 +8,8 @@ export const userRoutes = (app: Elysia) =>
     })
     .post("/users/login", UserController.loginController, {
       body: LoginSchema,
-    });
+    })
+    .patch("/users/edit", UserController.editUserController)
+    .delete("/users/delete/:id", UserController.deleteUserController);
 
 export default userRoutes;

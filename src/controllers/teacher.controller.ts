@@ -3,7 +3,6 @@ import { getUserByEmail } from "../services/user.service";
 import { pool } from "../utils/db";
 import { z } from "zod/v4";
 import bcrypt from "bcryptjs";
-import { Password } from "bun";
 
 export const teacherController = {
   getTeacherController: async (req: any) => {
@@ -144,7 +143,7 @@ export const teacherController = {
     if (isNaN(teacher_id)) {
       return req.status(400, { message: "Invalid teacher ID" });
     }
-    const result = await pool.query(
+    const [result]: any = await pool.query(
       "DELETE FROM teacher WHERE teacher_id = ?",
       [teacher_id]
     );

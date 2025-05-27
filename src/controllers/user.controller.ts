@@ -1,5 +1,6 @@
 import { getUserByEmail } from "../services/user.service";
 import pool from "../utils/db";
+import { z } from "zod/v4";
 
 export const UserController = {
   loginController: async ({ body, set, jwt }: any) => {
@@ -72,5 +73,79 @@ export const UserController = {
       }
       throw err;
     }
+  },
+
+  editUserController: async (req: any) => {
+    try {
+      const data = req.body;
+      // ถ้าค่่าไหนไม่มี จะไม่ถูกอัพเดท
+      const User = z.object({
+        student_id: z.int(),
+        student_name: z.string().nonempty().optional(),
+        student_email: z.string().email().nonempty().optional(),
+        student_phone: z.string().min(10).max(15).nonempty().optional(),
+        student_password: z.string().min(6).nonempty().optional(),
+        student_profile_image: z.string().nonempty().optional(),
+      });
+
+      const userResult: any = User.safeParse(data);
+
+      if (!userResult.success) {
+        for (const issue of userResult.error.issues) {
+          console.error(`Validation failed: ${issue.message}\n`);
+        }
+        throw "Validation failed";
+      }
+
+      const validatedData: any = userResult.data;
+      const student_id = validatedData.student_id;
+      delete validatedData.student_id; // ตัด id ออก ไม่งั้นอาจมีการนำ id ไปใช้ใน "SET ?"
+
+      if (validatedData.student_password) {
+        // if contain password hash pass
+        const hashedPassword = await Bun.password.hash(validatedData.student_password);
+        validatedData["student_password"] = hashedPassword;
+      }
+
+      const sql = `UPDATE student SET ? WHERE student_id = ?`;
+      const result = await pool.query(sql, [validatedData, student_id]);
+
+      return req.status(200, {
+        success: true,
+        message: "student edited successfully",
+        data: result,
+      });
+    } catch (error: any) {
+      if (error.code === "ER_DUP_ENTRY") {
+        console.error("Unexpected error: ", error);
+        return req.status(500, {
+          success: false,
+          message: "duplicate Email",
+        });
+      }
+
+      console.error("Unexpected error: ", error);
+      return req.status(500, {
+        success: false,
+        message: "Unexpected error",
+      });
+    }
+  },
+
+  deleteUserController: async (req: any) => {
+    const student_id: number = parseInt(req.params.id);
+    if (isNaN(student_id)) {
+      return req.status(400, { message: "Invalid student ID" });
+    }
+    const [result]: any = await pool.query(
+      "DELETE FROM student WHERE student_id = ?",
+      [student_id]
+    );
+    console.log(result);
+
+    if (result.affectedRows === 0) {
+      return req.status(404, { message: "student not found" });
+    }
+    return req.status(200, { message: "student deleted successfully" });
   },
 };
