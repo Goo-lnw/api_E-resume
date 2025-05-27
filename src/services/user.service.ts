@@ -1,13 +1,17 @@
 import { pool } from "../utils/db";
-const getUsers = async () => {
-  return await pool.query("SELECT * FROM member");
-};
 const getUserByEmail = async (email: string) => {
-  const user = await pool.query(
-    "SELECT member_email, member_password, member_id FROM member WHERE member_email = ?",
+  var user: any;
+  user = await pool.query(
+    "SELECT teacher_email as password, teacher_password, teacher_id FROM teacher WHERE teacher_email = ?",
     [email]
   );
+  if (!user || Object.keys(user).length === 0) {
+    user = await pool.query(
+      "SELECT student_email as password, student_password, student_id FROM member WHERE student_email = ?",
+      [email]
+    );
+  }
   return user[0];
 };
 
-export { getUsers, getUserByEmail };
+export { getUserByEmail };
