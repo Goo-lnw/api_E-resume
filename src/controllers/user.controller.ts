@@ -103,18 +103,19 @@ export const UserController = {
 
       if (validatedData.user_password) {
         // if contain password hash pass
-        const hashedPassword = await Bun.password.hash(validatedData.user_password);
+        const hashedPassword = await Bun.password.hash(
+          validatedData.user_password
+        );
         validatedData["user_password"] = hashedPassword;
       }
 
       const sql = `UPDATE student SET ? WHERE student_id = ?`;
       const [result]: any = await pool.query(sql, [validatedData, user_id]);
 
-
       if (result.affectedRows == 0) {
         return req.status(404, {
           success: false,
-          message: "user id didn't found"
+          message: "user id didn't found",
         });
       }
 
@@ -127,13 +128,12 @@ export const UserController = {
         message: "User edited successfully",
         data: result,
       });
-
     } catch (error: any) {
       console.error("Unexpected error: ", error);
       return req.status(500, {
         success: false,
         message: "Unexpected error",
-        detail: error
+        detail: error,
       });
     }
   },
