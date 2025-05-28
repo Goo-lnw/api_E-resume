@@ -1,6 +1,7 @@
 import { Elysia } from "elysia";
 import { UserController } from "../controllers/user.controller";
 import { RegisterSchema, LoginSchema } from "../schema/sql.schema";
+
 export const userRoutes = (app: Elysia) =>
   app
     .post("/users/register", UserController.registerController, {

@@ -51,8 +51,8 @@ export const ResumeController = {
 
   createResumeController: async (req: any) => {
     try {
-      const user_id = getSession(req);
-    
+      const user_id = await getSession(req);
+      console.log(user_id);
 
       // const student_id = parseInt(req.query.id);
       // const Data = z.object({ student_id: z.number() });

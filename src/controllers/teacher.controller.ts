@@ -107,18 +107,19 @@ export const teacherController = {
 
       if (validatedData.teacher_password) {
         // if contain password hash pass
-        const hashedPassword = await Bun.password.hash(validatedData.teacher_password);
+        const hashedPassword = await Bun.password.hash(
+          validatedData.teacher_password
+        );
         validatedData["teacher_password"] = hashedPassword;
       }
 
       const sql = `UPDATE teacher SET ? WHERE teacher_id = ?`;
       const [result]: any = await pool.query(sql, [validatedData, teacher_id]);
 
-
       if (result.affectedRows == 0) {
         return req.status(404, {
           success: false,
-          message: "teacher id didn't found"
+          message: "teacher id didn't found",
         });
       }
 
@@ -131,13 +132,12 @@ export const teacherController = {
         message: "Teacher edited successfully",
         data: result,
       });
-
     } catch (error: any) {
       console.error("Unexpected error: ", error);
       return req.status(500, {
         success: false,
         message: "Unexpected error",
-        detail: error
+        detail: error,
       });
     }
   },

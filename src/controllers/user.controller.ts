@@ -3,17 +3,15 @@ import pool from "../utils/db";
 import { z } from "zod/v4";
 
 export const UserController = {
-  loginController: async ({ body, set, jwt }: any) => {
+  loginController: async ({ set, body, jwt, cookie: { auth } }: any) => {
     try {
       const { email, password } = body;
-
       const users = await getUserByEmail(email);
       if (!users || Object.keys(users).length === 0) {
         console.log("User not found:", email);
         set.status = 401;
         return { message: "Invalid credentials" };
       }
-      // console.log(users);
 
       const isValid = await Bun.password.verify(password, users.password);
       if (!isValid) {
@@ -21,7 +19,16 @@ export const UserController = {
         return { message: "Invalid credentials" };
       }
 
-      const token = await jwt.sign({ email: users.member_email });
+      const token = await jwt.sign({
+        email: users.member_email,
+        role: users.role,
+        isAdmin: users.isAdmin,
+        userId: users.id,
+      });
+
+      auth.value = {
+        authToken: token,
+      };
 
       return {
         token,
@@ -31,7 +38,6 @@ export const UserController = {
       };
     } catch (error) {
       console.error("Error in loginController:", error);
-      set.status = 500;
       return { error: "Internal Server Error" };
     }
   },
