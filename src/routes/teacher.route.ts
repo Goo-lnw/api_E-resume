@@ -11,6 +11,5 @@ export const TeacherRoutes = (app: Elysia) =>
     })
     .patch("/teacher/edit/:id", teacherController.editTeacherController)
     .delete("/teacher/delete/:id", teacherController.deleteTeacher);
-// .post("/teachers/login", TeacherLoginController);
 
 export default TeacherRoutes;
