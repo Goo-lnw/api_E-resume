@@ -29,14 +29,14 @@ export const teacherController = {
       const User = z.object({
         teacher_name: z.string(),
         teacher_email: z.string().email(),
-        teacher_phone: z.string().min(10).max(15),
+        teacher_phone: z.string().min(10).max(15).optional(),
         teacher_password: z.string().min(8),
         teacher_profile_image: z.string().optional(),
       });
       const userResult = User.safeParse(data);
       if (!userResult.success) {
         for (const issue of userResult.error.issues) {
-          console.error(`Validation failed: ${issue.message}\n`);
+          console.error(`Validation failed: ${issue.path} ${issue.message}\n`);
         }
         throw "Validation failed";
       }

@@ -19,6 +19,7 @@ export const UserController = {
     }
   },
 
+
   loginController: async ({ set, body, jwt, cookie: { auth } }: any) => {
     try {
       const { email, password } = body;

@@ -6,10 +6,9 @@ export const TeacherRoutes = (app: Elysia) =>
   app
     .get("/teacher", teacherController.getTeacherController)
     .get("/teacher/:mail", teacherController.getTeacherByEmail)
-    .post("/teacher/create", teacherController.createTeacherController, {
-      body: teacherSchema,
-    })
-    .patch("/teacher/edit/:id", teacherController.editTeacherController)
-    .delete("/teacher/delete/:id", teacherController.deleteTeacher);
+    // ข้างล่างนี้ เทสแล้ว ⬇️
+    .post("/teacher/create", teacherController.createTeacherController)
+    .patch("/teacher/edit", teacherController.editTeacherController)
+    .delete("/teacher/delete", teacherController.deleteTeacher);
 
 export default TeacherRoutes;
