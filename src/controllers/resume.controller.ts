@@ -1,8 +1,8 @@
 // import { getPagination } from "../services/pagination.service";
-import { getUserByEmail } from "../services/user.service";
 import { pool } from "../utils/db";
-import { number, z } from "zod/v4";
+import { z } from "zod/v4";
 import { getSession } from "../services/user.service";
+import { resumeStatusEdit } from "../services/resume.service";
 export const ResumeController = {
   getTotalCount: async (): Promise<number> => {
     const [rows]: any = await pool.query(
@@ -12,12 +12,14 @@ export const ResumeController = {
   },
 
   getResumeByStudentId: async (
-    student_id: number,
+    // ยังไม่เทส
+    req: any,
     page: number,
     limit: number
   ) => {
     const offset = (page - 1) * limit;
-
+    const sessionData = await getSession(req);
+    const student_id = sessionData.userId;
     const [rows]: any = await pool.query(
       `SELECT * FROM resume WHERE student_id = ? LIMIT ? OFFSET ?`,
       [student_id, limit, offset]
@@ -49,31 +51,29 @@ export const ResumeController = {
     return users.data;
   },
 
-  createResumeController: async (req: any, { cookie }: any) => {
+  createResumeController: async (req: any) => {
     try {
-      const sessionId = cookie["auth"];
-      console.log("sessionId:", sessionId);
+      const sessionData = await getSession(req);
+      const student_id = sessionData.userId;
+      const Data = z.object({ student_id: z.number() });
+      const validatedData = Data.safeParse({ student_id: student_id });
+      if (!validatedData.success) {
+        for (const issue of validatedData.error.issues) {
+          console.error(`Validation failed: ${issue.message}`);
+        }
+        throw "validation fail, try again!";
+      }
 
-      // const student_id = parseInt(req.query.id);
-      // const Data = z.object({ student_id: z.number() });
-      // const validatedData = Data.safeParse({ student_id: student_id });
-      // if (!validatedData.success) {
-      //   for (const issue of validatedData.error.issues) {
-      //     console.error(`Validation failed: ${issue.message}`);
-      //   }
-      //   throw "validation fail, try again!";
-      // }
-
-      // const [result]: any = await pool.query(
-      //   "INSERT INTO resume SET ?",
-      //   validatedData.data
-      // );
-      // const resumeId = result.insertId;
+      const [result]: any = await pool.query(
+        "INSERT INTO resume SET ?",
+        validatedData.data
+      );
+      const resumeId = result.insertId;
 
       return req.status(201, {
         success: true,
         message: "Resume create successfully",
-        // data: resumeId,
+        data: resumeId,
       });
     } catch (error: any) {
       console.error("Unexpected error: ", error);
@@ -84,70 +84,41 @@ export const ResumeController = {
     }
   },
 
-  editResumeController: async (req: any) => {
-    // ยังเทสไม่เสร็จ
+  submitResumeController: async (req: any) => {
     try {
-      // เตรียม&ตรวจสอบ resume_id&student_id
-      let reqQuery: any = req.query;
-      const resume_id = parseInt(reqQuery.rid);
-      const student_id = parseInt(reqQuery.sid);
-      const reqQuerySchema = z.object({
+      const reqBody = req.body
+      const resume_id = reqBody.resume_id;
+      const student_id = reqBody.student_id;
+
+      const reqBodySchema = z.object({
         resume_id: z.number(),
         student_id: z.number(),
       });
-      const validatedReqQuery = reqQuerySchema.safeParse({
+      const validatedReqBody = reqBodySchema.safeParse({
         resume_id: resume_id,
         student_id: student_id,
       });
-      if (!validatedReqQuery.success) {
-        for (const issue of validatedReqQuery.error.issues) {
-          console.error(`Validation query failed: ${issue.message}\n`);
-        }
-        throw "Validation failed";
-      }
-      // เตรียม&ตรวจสอบ request Body
-      // ถ้าค่่าไหนไม่มี จะไม่ถูกอัพเดท ห้่ามส่ง stringว่าง "" มา
-      let reqBody: any = req.body;
-      const reqBodySchema = z.object({
-        teacher_id: z.number().optional(),
-        resume_status: z.number().optional(),
-        resume_teacher_comment: z.string().nonempty().optional(),
-      });
-      const validatedReqBody = reqBodySchema.safeParse(reqBody);
       if (!validatedReqBody.success) {
+        let error: any[] = [];
         for (const issue of validatedReqBody.error.issues) {
-          console.error(`Validation failed: ${issue.message}\n`);
+          error.push(`${issue.path} : ${issue.message}`);
+          console.error(`Validation failed: ${issue.path} : ${issue.message}`);
         }
-        throw "Validation failed";
-      }
-      // changed for easy understand kub lmao
-      reqQuery = validatedReqQuery.data;
-      reqBody = validatedReqBody.data;
-
-      const sql = `UPDATE resume SET ? WHERE resume_id = ? AND student_id = ?`;
-      const [result]: any = await pool.query(sql, [
-        reqBody,
-        reqQuery.resume_id,
-        reqQuery.student_id,
-      ]);
-
-      if (result.affectedRows == 0) {
-        return req.status(404, {
+        return req.status(500, {
           success: false,
-          message: "teacher id didn't found",
+          message: "Unexpected error",
+          detail: error,
         });
       }
 
-      if (result.changedRows == 0) {
-        throw "No data changed";
-      }
+      const result = await resumeStatusEdit(req.body, 2);
 
       return req.status(200, {
         success: true,
-        message: "Teacher edited successfully",
+        message: "Resume submitted",
         data: result,
       });
-    } catch (error: any) {
+    } catch (error) {
       console.error("Unexpected error: ", error);
       return req.status(500, {
         success: false,
@@ -157,50 +128,49 @@ export const ResumeController = {
     }
   },
 
-  ResumeStatusController: async (req: any) => {
+  cancleSubmitResumeController: async (req: any) => {
     try {
-      // เตรียม&ตรวจสอบ resume_id&student_id
-      let reqQuery: any = req.query;
-      const resume_id = parseInt(reqQuery.rid);
-      const student_id = parseInt(reqQuery.sid);
-      const status_id = parseInt(reqQuery.status);
-      const reqQuerySchema = z.object({
+      const reqBody = req.body
+      const resume_id = reqBody.resume_id;
+      const student_id = reqBody.student_id;
+
+      const reqBodySchema = z.object({
         resume_id: z.number(),
         student_id: z.number(),
       });
-      const validatedReqQuery = reqQuerySchema.safeParse({
+      const validatedReqBody = reqBodySchema.safeParse({
         resume_id: resume_id,
         student_id: student_id,
       });
-      if (!validatedReqQuery.success) {
-        for (const issue of validatedReqQuery.error.issues) {
-          console.error(`Validation query failed: ${issue.message}\n`);
+      if (!validatedReqBody.success) {
+        let error: any[] = [];
+        for (const issue of validatedReqBody.error.issues) {
+          error.push(`${issue.path} : ${issue.message}`);
+          console.error(`Validation failed: ${issue.path} : ${issue.message}`);
         }
-        throw "Validation failed";
-      }
-      reqQuery = validatedReqQuery.data;
-      const sql = `UPDATE resume SET resume_status = ? WHERE resume_id = ? AND student_id = ?`;
-      const [result]: any = await pool.query(sql, [
-        reqQuery.resume_id,
-        reqQuery.student_id,
-      ]);
-
-      if (result.affectedRows == 0) {
-        return req.status(404, {
+        return req.status(500, {
           success: false,
-          message: "teacher id didn't found",
+          message: "Unexpected error",
+          detail: error,
         });
       }
 
-      if (result.changedRows == 0) {
-        throw "No data changed";
-      }
+      const result = await resumeStatusEdit(req.body, 1);
 
       return req.status(200, {
         success: true,
-        message: "submitted resume",
+        message: "cancled submit resume",
         data: result,
       });
-    } catch (error) {}
+    } catch (error) {
+      console.error("Unexpected error: ", error);
+      return req.status(500, {
+        success: false,
+        message: "Unexpected error",
+        detail: error,
+      });
+    }
   },
+
+
 };
