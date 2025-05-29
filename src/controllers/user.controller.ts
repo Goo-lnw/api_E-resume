@@ -24,6 +24,7 @@ export const UserController = {
         role: users.role,
         isAdmin: users.isAdmin,
         userId: users.id,
+        name: users.name,
       });
 
       auth.value = {
