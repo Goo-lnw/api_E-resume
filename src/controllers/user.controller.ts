@@ -1,8 +1,24 @@
-import { getUserByEmail } from "../services/user.service";
+import { getUserByEmail, getSession } from "../services/user.service";
 import pool from "../utils/db";
 import { z } from "zod/v4";
 
 export const UserController = {
+  getStudentController: async (req: any) => {
+    try {
+      const session = await getSession(req);
+      const student_id = session?.userId;
+      if (!student_id) return;
+      const user = await pool.query(
+        "SELECT * FROM student WHERE student_id = ?",
+        [student_id]
+      );
+      console.log(user[0]);
+      return user[0];
+    } catch (err) {
+      console.log(err);
+    }
+  },
+
   loginController: async ({ set, body, jwt, cookie: { auth } }: any) => {
     try {
       const { email, password } = body;
