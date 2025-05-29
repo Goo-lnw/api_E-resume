@@ -12,8 +12,8 @@ export const UserController = {
         "SELECT * FROM student WHERE student_id = ?",
         [student_id]
       );
-      console.log(user[0]);
-      return user[0];
+      console.log(user[0][0]);
+      return user[0][0];
     } catch (err) {
       console.log(err);
     }
@@ -58,6 +58,7 @@ export const UserController = {
       return { error: "Internal Server Error" };
     }
   },
+
 
   registerController: async (req: any) => {
     try {
