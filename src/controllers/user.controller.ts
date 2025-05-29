@@ -1,4 +1,3 @@
-
 import { getUserByEmail, getSession } from "../services/user.service";
 import pool from "../utils/db";
 import { z } from "zod/v4";
@@ -98,15 +97,13 @@ export const UserController = {
       throw err;
     }
   },
-=======
->>>>>>> b99c8fc90ce3d38ffcd373a3bd03c6e249f2ab4a
 
   editUserController: async (req: any) => {
     try {
       const userRole = req.user.role;
       const userId: number = parseInt(req.user.userId);
       if (userRole !== "student") {
-        throw ("you don't has a permission");
+        throw "you don't has a permission";
       }
 
       const data = req.body;
@@ -173,7 +170,7 @@ export const UserController = {
     const userRole = req.user.role;
     const userId: number = parseInt(req.user.userId);
     if (userRole !== "student") {
-      throw ("you don't has a permission");
+      throw "you don't has a permission";
     }
     if (isNaN(userId)) {
       return req.status(400, { message: "Invalid student ID" });
