@@ -53,8 +53,11 @@ export const ResumeController = {
 
   createResumeController: async (req: any) => {
     try {
-      const sessionData = await getSession(req);
-      const student_id = sessionData.userId;
+      const userRole = req.user.role;
+      const student_id = req.user.userId;
+      if (userRole !== "student") {
+        throw ("you don't has a permission");
+      }
       const Data = z.object({ student_id: z.number() });
       const validatedData = Data.safeParse({ student_id: student_id });
       if (!validatedData.success) {
@@ -86,6 +89,10 @@ export const ResumeController = {
 
   submitResumeController: async (req: any) => {
     try {
+      const userRole = req.user.role;
+      if (userRole !== "student") {
+        throw ("you don't has a permission");
+      }
       const reqBody = req.body
       const resume_id = reqBody.resume_id;
       const student_id = reqBody.student_id;
@@ -130,6 +137,10 @@ export const ResumeController = {
 
   cancleSubmitResumeController: async (req: any) => {
     try {
+      const userRole = req.user.role;
+      if (userRole !== "teacher") {
+        throw ("you don't has a permission");
+      }
       const reqBody = req.body
       const resume_id = reqBody.resume_id;
       const student_id = reqBody.student_id;
@@ -171,6 +182,5 @@ export const ResumeController = {
       });
     }
   },
-
 
 };
