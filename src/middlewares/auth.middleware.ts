@@ -11,6 +11,8 @@ export const authMiddleware = (app) =>
 
     try {
       const payload = await jwt.verify(token);
+      console.log(payload);
+
       return {
         user: payload,
       };
