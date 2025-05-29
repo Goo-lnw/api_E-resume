@@ -1,14 +1,19 @@
-// import { Elysia } from "elysia";
-// const app = new Elysia();
-// export const authMiddleware = () => {
-//   return ({ request, set }: { request: Request; set: any }) => {
-//     const authHeader = request.headers.get("authorization");
+// export const authMiddleware = (app) =>
+//   app.onBeforeHandle(async ({ headers, jwt, set }) => {
+//     const authHeader = headers["authorization"];
 
-//     if (!authHeader || authHeader !== "Bearer my-token") {
+//     if (!authHeader) {
 //       set.status = 401;
-//       return { message: "Unauthorized" };
+//       return { error: "Unauthorized" };
 //     }
-//   };
-// };
 
-// export default authMiddleware;
+//     const token = authHeader.split(" ")[1];
+
+//     try {
+//       const payload = await jwt.verify(token);
+//       return { user: payload };
+//     } catch {
+//       set.status = 401;
+//       return { error: "Invalid token" };
+//     }
+//   });

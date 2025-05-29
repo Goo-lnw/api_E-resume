@@ -49,10 +49,10 @@ export const ResumeController = {
     return users.data;
   },
 
-  createResumeController: async (req: any) => {
+  createResumeController: async (req: any, { cookie }: any) => {
     try {
-      const user_id = await getSession(req);
-      console.log(user_id);
+      const sessionId = cookie["auth"];
+      console.log("sessionId:", sessionId);
 
       // const student_id = parseInt(req.query.id);
       // const Data = z.object({ student_id: z.number() });
