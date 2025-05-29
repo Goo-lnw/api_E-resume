@@ -1,4 +1,3 @@
-import { error } from "zod/dist/types/v4/locales/ar";
 import { getPagination } from "../services/pagination.service";
 import { getUserByEmail } from "../services/user.service";
 import { pool } from "../utils/db";
@@ -82,7 +81,11 @@ export const teacherController = {
   editTeacherController: async (req: any) => {
     try {
       const data = req.body;
-      const teacher_id: number = parseInt(req.params.id);
+      const userRole = req.user.role;
+      const teacher_id: number = parseInt(req.user.userId);
+      if (userRole !== "teacher") {
+        throw ("you don't has a permission");
+      }
       // ถ้าค่่าไหนไม่มี จะไม่ถูกอัพเดท ห้่ามส่ง stringว่าง "" มา ***โดยเฉพาะ password
       // ถ้า edit password ส่งมาแต่ password ได้เลย ไม่ต้องส่งตัวอื่น
       // หรือแยกเส้น password change เลยดี
@@ -143,7 +146,11 @@ export const teacherController = {
   },
 
   deleteTeacher: async (req: any) => {
-    const teacher_id: number = parseInt(req.params.id);
+    const userRole = req.user.role;
+    const teacher_id: number = parseInt(req.user.userId);
+    if (userRole !== "teacher") {
+      throw ("you don't has a permission");
+    }
     if (isNaN(teacher_id)) {
       return req.status(400, { message: "Invalid teacher ID" });
     }
