@@ -433,6 +433,8 @@ export const ResumeController = {
   editResume: async (ctx: any) => {
     try {
       const ctxBody = ctx.body;
+      console.log(ctx.user);
+
       const resume_id = parseInt(ctx.params.resume_id);
       const DataSchema = z.object({
         resume_id: z.number(),
@@ -443,7 +445,7 @@ export const ResumeController = {
       const validatedData = DataSchema.safeParse({
         resume_id: resume_id,
         resume_status: ctxBody.resume_status,
-        teacher_id: ctxBody.teacher_id,
+        teacher_id: ctx.user.userId,
         resume_teacher_comment: ctxBody.resume_teacher_comment
       });
       if (!validatedData.success) {
@@ -486,5 +488,6 @@ export const ResumeController = {
       console.error(err);
       throw err;
     }
-  }
+  },
+
 };
