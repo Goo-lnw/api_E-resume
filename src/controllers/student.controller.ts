@@ -78,4 +78,20 @@ export const studentController = {
   testStudent: async (ctx: any) => {
     console.log("access");
   },
+  deleteStudentController: async (req: any) => {
+    const userId: number = parseInt(req.user.userId);
+    if (isNaN(userId)) {
+      return req.status(400, { sucess: false, message: "Invalid student ID" });
+    }
+    const [result]: any = await pool.query(
+      "DELETE FROM student WHERE student_id = ?",
+      [userId]
+    );
+    console.log(result);
+
+    if (result.affectedRows === 0) {
+      return req.status(404, { sucess: false, message: "student not found" });
+    }
+    return req.status(200, { sucess: true, message: "student deleted successfully" });
+  },
 };

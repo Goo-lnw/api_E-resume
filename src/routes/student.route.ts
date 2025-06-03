@@ -6,6 +6,7 @@ export const studentRoutes = (app: Elysia) =>
     app
       .get("", studentController.getStudents)
       .get("/:student_id", studentController.getStudentById)
+      .delete("/:id/delete", studentController.deleteStudentController)
       .get("/test", studentController.testStudent)
       .post("", studentController.createStudent, {
         body: bodyCreateStudent,
