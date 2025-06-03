@@ -85,12 +85,12 @@ export const studentController = {
 
       const data = ctx.body;
       const userEntry = z.object({
-        student_name: z.string().nonempty().optional(),
-        student_email: z.string().email().nonempty().optional(),
-        student_phone: z.string().min(10).max(15).nonempty().optional(),
-        student_old_password: z.string().min(8).nonempty().optional(),
-        student_password: z.string().min(8).nonempty().optional(),
-        student_profile_image: z.string().nonempty().optional(),
+        student_name: z.string().optional().nullable(),
+        student_email: z.string().email().optional().nullable(),
+        student_phone: z.string().min(10).max(15).optional().nullable(),
+        student_old_password: z.string().min(8).optional().nullable(),
+        student_password: z.string().min(8).optional().nullable(),
+        student_profile_image: z.string().optional().nullable(),
       });
 
       const ValidatedEntry: any = userEntry.safeParse(data);

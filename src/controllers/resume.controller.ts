@@ -428,4 +428,53 @@ export const ResumeController = {
       throw err;
     }
   },
+  editResume: async (ctx: any) => {
+    try {
+      const reqBody = req.body;
+      const DataSchema = z.object({
+        resume_id: z.number(),
+        student_id: z.number(),
+        teacher_id: z.number().optional()
+      });
+      const validatedData = DataSchema.safeParse({
+        resume_id: reqBody.resume_id,
+        student_id: student_id,
+        teacher_id: reqBody.teacher_id
+      });
+      if (!validatedData.success) {
+        let err: any[] = [];
+        for (const issue of validatedData.error.issues) {
+          err.push(`${issue.path} : ${issue.message}`);
+          console.error(`Validation failed: ${issue.path} : ${issue.message}`);
+        }
+        throw new Error("Valadition Fail", { cause: err });
+      }
+
+      let set: { resume_status: number; teacher_id?: number; } = { resume_status: 3 };
+      if (validatedData.data.teacher_id) {
+        set.teacher_id = validatedData.data.teacher_id
+      }
+
+      const sql = "UPDATE resume SET ? WHERE resume_id = ? AND student_id = ? ";
+      const [result]: any = await pool.query(sql, [set, resume_id, student_id]);
+      console.log(result);
+      if (result.affectedRows === 0) {
+        throw ("UPDATE ERROR : Resume not found or wrong ID");
+      }
+
+      if (result.changedRows === 0) {
+        throw ("UPDATE ERROR : Resume status didn't change");
+      }
+
+      return result;
+      // return {
+      //   message: "Training added successfully",
+      //   status: 200,
+      //   insertId: rows.insertId,
+      // };
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  }
 };
