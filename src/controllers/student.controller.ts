@@ -4,7 +4,7 @@ import { z } from "zod/v4";
 export const studentController = {
   getStudents: async () => {
     try {
-      const sql = `SELECT student_id , student_name, student_email, student_phone, student_phone FROM student`;
+      const sql = `SELECT student_id , student_name, student_email,student_main_id, student_phone, student_phone FROM student`;
       const [rows]: any = await pool.query(sql);
       return rows;
     } catch (error) {
@@ -27,15 +27,17 @@ export const studentController = {
     const {
       student_email,
       student_password, //no hash --
+      student_main_id,
     } = ctx.body;
     const connection = await pool.getConnection();
     try {
       await connection.beginTransaction();
 
-      const sql = `INSERT INTO student (student_email, student_password) VALUES (?, ?, ?)`;
+      const sql = `INSERT INTO student (student_email, student_password , student_main_id) VALUES (?, ?, ?)`;
       const [rows_insert]: any = await connection.query(sql, [
         student_email,
         student_password,
+        student_main_id,
       ]);
 
       const new_student_id = rows_insert.insertId;
