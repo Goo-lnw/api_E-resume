@@ -1,177 +1,431 @@
-;// import { getPagination } from "../services/pagination.service";
-import { getUserByEmail } from "../services/user.service";
+// import { getPagination } from "../services/pagination.service";
 import { pool } from "../utils/db";
-import { number, z } from "zod/v4";
 
 export const ResumeController = {
-    getTotalCount: async (): Promise<number> => {
-        const [rows]: any = await pool.query(`SELECT COUNT(*) as count FROM resume`);
-        return rows[0].count;
-    },
+  getResume: async () => {
+    try {
+      const sql = `SELECT
+                    resume.resume_id, 
+                    resume.student_id, 
+                    student.student_name, 
+                    student.student_email, 
+                    student.student_phone, 
+                    student.student_profile_image, 
+                    internship.internship_company_name, 
+                    internship.internship_position, 
+                    internship.internship_start_date, 
+                    internship.internship_id, 
+                    internship.internship_end_date, 
+                    internship.internship_description, 
+                    internship.internship_related_files, 
+                    skill.skill_id, 
+                    skill.skill_name, 
+                    skill.skill_type, 
+                    skill.skill_proficiency, 
+                    training_history.training_history_id, 
+                    training_history.training_history_course_name, 
+                    training_history.training_history_organization, 
+                    training_history.training_history_location, 
+                    training_history.training_history_date, 
+                    training_history.training_history_certificate_file, 
+                    work_experience.work_experience_id, 
+                    work_experience.work_experience_company_name, 
+                    work_experience.work_experience_position, 
+                    work_experience.work_experience_start_date, 
+                    work_experience.work_experience_end_date, 
+                    work_experience.work_experience_description, 
+                    work_experience.work_experience_highlight, 
+                    notification.notification_id, 
+                    notification.notification_message, 
+                    notification.is_read, 
+                    notification.created_at, 
+                    student.student_id, 
+                    additional_info.additional_info_id, 
+                    additional_info.additional_info_title, 
+                    additional_info.additional_info_description, 
+                    additional_info.additional_info_file_attachment, 
+                    education_history.education_history_id, 
+                    education_history.education_history_institution, 
+                    education_history.education_history_major, 
+                    education_history.education_history_start_year, 
+                    education_history.education_history_gpa, 
+                    education_history.education_history_notes
+                  FROM
+                    resume
+                    LEFT JOIN
+                    student
+                    ON 
+                      resume.student_id = student.student_id
+                    LEFT JOIN
+                    internship
+                    ON 
+                      resume.resume_id = internship.resume_id
+                    LEFT JOIN
+                    skill
+                    ON 
+                      resume.resume_id = skill.resume_id
+                    LEFT JOIN
+                    training_history
+                    ON 
+                      resume.resume_id = training_history.resume_id
+                    LEFT JOIN
+                    work_experience
+                    ON 
+                      resume.resume_id = work_experience.resume_id
+                    LEFT JOIN
+                    notification
+                    ON 
+                      resume.resume_id = notification.resume_id AND
+                      student.student_id = notification.student_id
+                    LEFT JOIN
+                    additional_info
+                    ON 
+                      resume.resume_id = additional_info.resume_id
+                    LEFT JOIN
+                    education_history
+                    ON 
+                      resume.resume_id = education_history.resume_id
+                  `;
+      const [rows]: any = await pool.query(sql);
+      return rows;
+    } catch (error) {
+      throw error;
+    }
+  },
 
-    getResumeByStudentId: async (
-        student_id: number,
-        page: number,
-        limit: number) => {
-        const offset = (page - 1) * limit;
+  getResumeById: async (ctx: any) => {
+    try {
+      const resume_id = ctx.params.resume_id;
+      const sql = `SELECT
+                    resume.resume_id, 
+                    resume.student_id, 
+                    student.student_name, 
+                    student.student_email, 
+                    student.student_phone, 
+                    student.student_profile_image, 
+                    internship.internship_company_name, 
+                    internship.internship_position, 
+                    internship.internship_start_date, 
+                    internship.internship_id, 
+                    internship.internship_end_date, 
+                    internship.internship_description, 
+                    internship.internship_related_files, 
+                    skill.skill_id, 
+                    skill.skill_name, 
+                    skill.skill_type, 
+                    skill.skill_proficiency, 
+                    training_history.training_history_id, 
+                    training_history.training_history_course_name, 
+                    training_history.training_history_organization, 
+                    training_history.training_history_location, 
+                    training_history.training_history_date, 
+                    training_history.training_history_certificate_file, 
+                    work_experience.work_experience_id, 
+                    work_experience.work_experience_company_name, 
+                    work_experience.work_experience_position, 
+                    work_experience.work_experience_start_date, 
+                    work_experience.work_experience_end_date, 
+                    work_experience.work_experience_description, 
+                    work_experience.work_experience_highlight, 
+                    notification.notification_id, 
+                    notification.notification_message, 
+                    notification.is_read, 
+                    notification.created_at, 
+                    student.student_id, 
+                    additional_info.additional_info_id, 
+                    additional_info.additional_info_title, 
+                    additional_info.additional_info_description, 
+                    additional_info.additional_info_file_attachment, 
+                    education_history.education_history_id, 
+                    education_history.education_history_institution, 
+                    education_history.education_history_major, 
+                    education_history.education_history_start_year, 
+                    education_history.education_history_gpa, 
+                    education_history.education_history_notes
+                  FROM
+                    resume
+                    LEFT JOIN
+                    student
+                    ON 
+                      resume.student_id = student.student_id
+                    LEFT JOIN
+                    internship
+                    ON 
+                      resume.resume_id = internship.resume_id
+                    LEFT JOIN
+                    skill
+                    ON 
+                      resume.resume_id = skill.resume_id
+                    LEFT JOIN
+                    training_history
+                    ON 
+                      resume.resume_id = training_history.resume_id
+                    LEFT JOIN
+                    work_experience
+                    ON 
+                      resume.resume_id = work_experience.resume_id
+                    LEFT JOIN
+                    notification
+                    ON 
+                      resume.resume_id = notification.resume_id AND
+                      student.student_id = notification.student_id
+                    LEFT JOIN
+                    additional_info
+                    ON 
+                      resume.resume_id = additional_info.resume_id
+                    LEFT JOIN
+                    education_history
+                    ON 
+                      resume.resume_id = education_history.resume_id 
+                    WHERE resume.resume_id = ? 
+                      `;
+      const [rows]: any = await pool.query(sql, [resume_id]);
+      return rows[0];
+    } catch (error) {
+      throw error;
+    }
+  },
 
-        const [rows]: any = await pool.query(`SELECT * FROM resume WHERE student_id = ? LIMIT ? OFFSET ?`, [
-            student_id,
-            limit,
-            offset,
-        ]);
+  addSoftSkill: async (ctx: any) => {
+    try {
+      const resume_id = ctx.params.resume_id;
+      const { soft_skill_name, soft_skill_description } = ctx.body;
+      const sql = `UPDATE soft_skill SET soft_skill_name = ?, soft_skill_description = ? WHERE resume_id = ?`;
+      const [rows]: any = await pool.query(sql, [
+        soft_skill_name,
+        soft_skill_description,
+        resume_id,
+      ]);
+      return {
+        message: "Education history added successfully",
+        status: 200,
+        insertId: rows.insertId,
+      };
+    } catch (error) {
+      throw error;
+    }
+  },
 
-        const total = await ResumeController.getTotalCount();
+  // add_additional_info: async (ctx: any) => {
+  //   try {
+  //     const resume_id = ctx.params.resume_id;
+  //     const { skill_name } = ctx.body;
+  //     const sql = `UPDATE resume SET resume_status = ? WHERE resume_id = ?`;
+  //     const [rows]: any = await pool.query(sql, [resume_id, skill_name]);
+  //     return rows;
+  //   } catch (error) {
+  //     throw error;
+  //   }
+  // },
 
-        return {
-            data: rows,
-            page,
-            limit,
-            total,
-            totalPages: Math.ceil(total / limit),
-        };
-    },
+  addEducationHistory: async (ctx: any) => {
+    try {
+      const resume_id = ctx.params.resume_id;
+      const {
+        education_history_institution,
+        education_history_major,
+        education_history_start_year,
+        education_history_gpa,
+        education_history_notes,
+      } = ctx.body;
 
-    getResumeController: async (req: any) => {
-        const student_id: number = parseInt(req.query.id);
-        const page: number = parseInt(req.query.page) || 1;
-        const limit: number = parseInt(req.query.limit) || 10;
-        const users = await ResumeController.getResumeByStudentId(student_id, page, limit);
-        if (Object.keys(users).length == 0) {
-            return req.status(204, { message: "No resume found" });
-        }
-        return users.data;
-    },
+      const sql = `
+      UPDATE education_history SET
+        education_history_institution = ?,
+        education_history_major = ?,
+        education_history_start_year = ?,
+        education_history_gpa = ?,
+        education_history_notes = ?
+      WHERE resume_id = ?
+    `;
 
-    createResumeController: async (req: any) => {
-        try {
-            const student_id = parseInt(req.query.id);
-            const Data = z.object({ student_id: z.number() });
-            const validatedData = Data.safeParse({ student_id: student_id });
-            if (!validatedData.success) {
-                for (const issue of validatedData.error.issues) {
-                    console.error(`Validation failed: ${issue.message}`);
-                }
-                throw ("validation fail, try again!");
-            }
+      const [rows]: any = await pool.query(sql, [
+        education_history_institution,
+        education_history_major,
+        education_history_start_year,
+        education_history_gpa,
+        education_history_notes,
+        resume_id,
+      ]);
 
-            const [result]: any = await pool.query("INSERT INTO resume SET ?", validatedData.data);
-            const resumeId = result.insertId;
+      return {
+        message: "Education history added successfully",
+        status: 200,
+        insertId: rows.insertId,
+      };
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  },
 
-            return req.status(201, {
-                success: true,
-                message: "Resume create successfully",
-                data: resumeId,
-            });
-        } catch (error: any) {
-            console.error("Unexpected error: ", error);
-            return req.status(500, {
-                success: false,
-                message: "Unexpected error",
-            });
-        }
-    },
+  addWorkExperience: async (ctx: any) => {
+    try {
+      const resume_id = ctx.params.resume_id;
+      const {
+        work_experience_company_name,
+        work_experience_position,
+        work_experience_start_date,
+        work_experience_end_date,
+        work_experience_description,
+        work_experience_highlight,
+      } = ctx.body;
 
-    editResumeController: async (req: any) => { // ยังเทสไม่เสร็จ
-        try {
-            // เตรียม&ตรวจสอบ resume_id&student_id
-            let reqQuery: any = req.query;
-            const resume_id = parseInt(reqQuery.rid);
-            const student_id = parseInt(reqQuery.sid);
-            const reqQuerySchema = z.object({ resume_id: z.number(), student_id: z.number() });
-            const validatedReqQuery = reqQuerySchema.safeParse({ resume_id: resume_id, student_id: student_id });
-            if (!validatedReqQuery.success) {
-                for (const issue of validatedReqQuery.error.issues) {
-                    console.error(`Validation query failed: ${issue.message}\n`);
-                }
-                throw "Validation failed";
-            }
-            // เตรียม&ตรวจสอบ request Body
-            // ถ้าค่่าไหนไม่มี จะไม่ถูกอัพเดท ห้่ามส่ง stringว่าง "" มา
-            let reqBody: any = req.body;
-            const reqBodySchema = z.object({
-                teacher_id: z.number().optional(),
-                resume_status: z.number().optional(),
-                resume_teacher_comment: z.string().nonempty().optional(),
-            });
-            const validatedReqBody = reqBodySchema.safeParse(reqBody);
-            if (!validatedReqBody.success) {
-                for (const issue of validatedReqBody.error.issues) {
-                    console.error(`Validation failed: ${issue.message}\n`);
-                }
-                throw "Validation failed";
-            }
-            // changed for easy understand kub lmao 
-            reqQuery = validatedReqQuery.data;
-            reqBody = validatedReqBody.data;
+      const sql = `
+      UPDATE work_experience SET
+        work_experience_company_name = ?,
+        work_experience_position = ?,
+        work_experience_start_date = ?,
+        work_experience_end_date = ?,
+        work_experience_description = ?,
+        work_experience_highlight = ?
+      WHERE resume_id = ?
+    `;
 
-            const sql = `UPDATE resume SET ? WHERE resume_id = ? AND student_id = ?`;
-            const [result]: any = await pool.query(sql, [reqBody, reqQuery.resume_id, reqQuery.student_id]);
+      const [rows]: any = await pool.query(sql, [
+        work_experience_company_name,
+        work_experience_position,
+        work_experience_start_date,
+        work_experience_end_date,
+        work_experience_description,
+        work_experience_highlight,
+        resume_id,
+      ]);
 
-            if (result.affectedRows == 0) {
-                return req.status(404, {
-                    success: false,
-                    message: "teacher id didn't found"
-                });
-            }
+      return {
+        message: "Work experience added successfully",
+        status: 200,
+        insertId: rows.insertId,
+      };
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  },
 
-            if (result.changedRows == 0) {
-                throw "No data changed";
-            }
+  addinternship: async (ctx: any) => {
+    try {
+      const resume_id = ctx.params.resume_id;
+      const {
+        internship_company_name,
+        internship_position,
+        internship_start_date,
+        internship_end_date,
+        internship_description,
+        internship_related_files,
+      } = ctx.body;
 
-            return req.status(200, {
-                success: true,
-                message: "Teacher edited successfully",
-                data: result,
-            });
+      const sql = `
+                  UPDATE internship SET
+                      internship_company_name = ?,
+                      internship_position = ?,
+                      internship_start_date = ?,
+                      internship_end_date = ?,
+                      internship_description = ?,
+                      internship_related_files = ?
+                    WHERE resume_id = ?
+                  `;
 
-        } catch (error: any) {
-            console.error("Unexpected error: ", error);
-            return req.status(500, {
-                success: false,
-                message: "Unexpected error",
-                detail: error
-            });
-        }
-    },
+      const [rows]: any = await pool.query(sql, [
+        internship_company_name,
+        internship_position,
+        internship_start_date,
+        internship_end_date,
+        internship_description,
+        internship_related_files,
+        resume_id,
+      ]);
 
-    ResumeStatusController: async (req: any) => {
-        try {
-            // เตรียม&ตรวจสอบ resume_id&student_id
-            let reqQuery: any = req.query;
-            const resume_id = parseInt(reqQuery.rid);
-            const student_id = parseInt(reqQuery.sid);
-            const status_id = parseInt(reqQuery.status);
-            const reqQuerySchema = z.object({ resume_id: z.number(), student_id: z.number() });
-            const validatedReqQuery = reqQuerySchema.safeParse({ resume_id: resume_id, student_id: student_id });
-            if (!validatedReqQuery.success) {
-                for (const issue of validatedReqQuery.error.issues) {
-                    console.error(`Validation query failed: ${issue.message}\n`);
-                }
-                throw "Validation failed";
-            }
-            reqQuery = validatedReqQuery.data;
-            const sql = `UPDATE resume SET resume_status = ? WHERE resume_id = ? AND student_id = ?`;
-            const [result]: any = await pool.query(sql, [reqQuery.resume_id, reqQuery.student_id]);
+      return {
+        message: "Internship added successfully",
+        status: 200,
+        insertId: rows.insertId,
+      };
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  },
 
-            if (result.affectedRows == 0) {
-                return req.status(404, {
-                    success: false,
-                    message: "teacher id didn't found"
-                });
-            }
+  addproject: async (ctx: any) => {
+    try {
+      const resume_id = ctx.params.resume_id;
+      const {
+        project_name,
+        project_technology_used,
+        project_description,
+        project_impact,
+        project_attachment_link,
+      } = ctx.body;
 
-            if (result.changedRows == 0) {
-                throw "No data changed";
-            }
+      const sql = `
+                  UPDATE project SET
+                      project_name = ?,
+                      project_technology_used = ?,
+                      project_description = ?,
+                      project_impact = ?,
+                      project_attachment_link = ?
+                    WHERE resume_id = ?
+                  `;
 
-            return req.status(200, {
-                success: true,
-                message: "submitted resume",
-                data: result,
-            });
-        } catch (error) {
+      const [rows]: any = await pool.query(sql, [
+        project_name,
+        project_technology_used,
+        project_description,
+        project_impact,
+        project_attachment_link,
+        resume_id,
+      ]);
 
-        }
-    },
-}  
+      return {
+        message: "Project added successfully",
+        status: 200,
+        insertId: rows.insertId,
+      };
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  },
+
+  addTraning: async (ctx: any) => {
+    try {
+      const resume_id = ctx.params.resume_id;
+      const {
+        training_history_course_name,
+        training_history_organization,
+        training_history_location,
+        training_history_date,
+        training_history_certificate_file,
+      } = ctx.body;
+
+      const sql = `
+                  UPDATE training_history SET
+                      training_history_course_name = ?,
+                      training_history_organization = ?,
+                      training_history_location = ?,
+                      training_history_date = ?,
+                      training_history_certificate_file = ?
+                    WHERE resume_id = ?
+                  `;
+
+      const [rows]: any = await pool.query(sql, [
+        training_history_course_name,
+        training_history_organization,
+        training_history_location,
+        training_history_date,
+        training_history_certificate_file,
+        resume_id,
+      ]);
+
+      return {
+        message: "Training added successfully",
+        status: 200,
+        insertId: rows.insertId,
+      };
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  },
+};
