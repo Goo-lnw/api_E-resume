@@ -1,6 +1,7 @@
 // import { getPagination } from "../services/pagination.service";
+import { parse } from "dotenv";
 import { pool } from "../utils/db";
-
+import { z } from "zod/v4"
 export const ResumeController = {
   getResume: async () => {
     try {
@@ -428,4 +429,65 @@ export const ResumeController = {
       throw err;
     }
   },
+
+  editResume: async (ctx: any) => {
+    try {
+      const ctxBody = ctx.body;
+      console.log(ctx.user);
+
+      const resume_id = parseInt(ctx.params.resume_id);
+      const DataSchema = z.object({
+        resume_id: z.number(),
+        resume_status: z.number().optional().nullable(),
+        teacher_id: z.number().optional().nullable(),
+        resume_teacher_comment: z.string().optional().nullable()
+      });
+      const validatedData = DataSchema.safeParse({
+        resume_id: resume_id,
+        resume_status: ctxBody.resume_status,
+        teacher_id: ctx.user.userId,
+        resume_teacher_comment: ctxBody.resume_teacher_comment
+      });
+      if (!validatedData.success) {
+        let err: any[] = [];
+        for (const issue of validatedData.error.issues) {
+          err.push(`${issue.path} : ${issue.message}`);
+          console.error(`Validation failed: ${issue.path} : ${issue.message}`);
+        }
+        throw new Error("Valadition Fail", { cause: err });
+      }
+
+      let set: { resume_status?: number; teacher_id?: number; resume_teacher_comment?: string } = {};
+      if (validatedData.data.resume_status) {
+        set.resume_status = validatedData.data.resume_status
+      }
+      if (validatedData.data.teacher_id) {
+        set.teacher_id = validatedData.data.teacher_id
+      }
+      if (validatedData.data.resume_teacher_comment) {
+        set.resume_teacher_comment = validatedData.data.resume_teacher_comment
+      }
+
+      const sql = "UPDATE resume SET ? WHERE resume_id = ? ";
+      const [result]: any = await pool.query(sql, [set, validatedData.data.resume_id]);
+      console.log(result);
+      if (result.affectedRows === 0) {
+        throw ("UPDATE ERROR : Resume not found or wrong ID");
+      }
+
+      if (result.changedRows === 0) {
+        throw ("UPDATE ERROR : Resume data didn't change");
+      }
+
+      // return result;
+      return {
+        message: "resume edit successfully",
+        status: 200
+      };
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  },
+
 };

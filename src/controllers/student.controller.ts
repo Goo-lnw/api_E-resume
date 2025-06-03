@@ -4,7 +4,7 @@ import { z } from "zod/v4";
 export const studentController = {
   getStudents: async () => {
     try {
-      const sql = `SELECT student_id , student_name, student_email, student_phone, student_phone FROM student`;
+      const sql = `SELECT student_id , student_name, student_email,student_main_id, student_phone, student_phone FROM student`;
       const [rows]: any = await pool.query(sql);
       return rows;
     } catch (error) {
@@ -25,19 +25,19 @@ export const studentController = {
 
   createStudent: async (ctx: any) => {
     const {
-      student_name,
       student_email,
       student_password, //no hash --
+      student_main_id,
     } = ctx.body;
     const connection = await pool.getConnection();
     try {
       await connection.beginTransaction();
 
-      const sql = `INSERT INTO student (student_name, student_email, student_password) VALUES (?, ?, ?)`;
+      const sql = `INSERT INTO student (student_email, student_password , student_main_id) VALUES (?, ?, ?)`;
       const [rows_insert]: any = await connection.query(sql, [
-        student_name,
         student_email,
         student_password,
+        student_main_id,
       ]);
 
       const new_student_id = rows_insert.insertId;
@@ -78,6 +78,91 @@ export const studentController = {
   testStudent: async (ctx: any) => {
     console.log("access");
   },
+
+  editStudentController: async (ctx: any) => {
+    try {
+      const userId: number = parseInt(ctx.params.student_id);
+
+      const data = ctx.body;
+      const userEntry = z.object({
+        student_name: z.string().optional().nullable(),
+        student_email: z.string().email().optional().nullable(),
+        student_phone: z.string().min(10).max(15).optional().nullable(),
+        student_old_password: z.string().min(8).optional().nullable(),
+        student_password: z.string().min(8).optional().nullable(),
+        student_profile_image: z.string().optional().nullable(),
+      });
+
+      const ValidatedEntry: any = userEntry.safeParse(data);
+
+      if (!ValidatedEntry.success) {
+        for (const issue of ValidatedEntry.error.issues) {
+          console.error(`Validation failed: ${issue.path} ${issue.message}\n`);
+        }
+        throw "Validation failed";
+      }
+
+      const ValidatedEntryData: any = ValidatedEntry.data;
+
+      if (
+        ValidatedEntryData.student_old_password !== undefined &&
+        ValidatedEntryData.student_password !== undefined
+      ) {
+        const oldUserData = await studentController.getStudentById(ctx);
+        const oldPass = oldUserData.student_password;
+        const oldPassEntry = ctx.body.student_old_password;
+        const passCompare = await Bun.password.verify(oldPassEntry, oldPass);
+        if (!passCompare) {
+          throw "old password wrong reentry and try again";
+        }
+        // if contain password hash pass
+        const hashedPassword = await Bun.password.hash(
+          ValidatedEntryData.student_password
+        );
+        ValidatedEntryData["student_password"] = hashedPassword;
+        delete ValidatedEntryData.student_old_password;
+      } else if (
+        ValidatedEntryData.student_old_password === undefined &&
+        ValidatedEntryData.student_password !== undefined
+      ) {
+        throw new Error("Please enter your old password and try again");
+      } else if (
+        ValidatedEntryData.student_old_password !== undefined &&
+        ValidatedEntryData.student_password === undefined
+      ) {
+        throw new Error("please entry your new password and try again");
+      } else {
+      }
+
+      const sql = `UPDATE student SET ? WHERE student_id = ?`;
+      const [result]: any = await pool.query(sql, [ValidatedEntryData, userId]);
+
+      if (result.affectedRows == 0) {
+        return ctx.status(404, {
+          success: false,
+          message: "user id didn't found",
+        });
+      }
+
+      if (result.changedRows == 0) {
+        throw "No data changed";
+      }
+
+      return ctx.status(200, {
+        success: true,
+        message: "User edited successfully",
+        data: result,
+      });
+    } catch (error: any) {
+      console.error("Unexpected error: ", error);
+      return ctx.status(500, {
+        success: false,
+        message: "Unexpected error",
+        detail: error,
+      });
+    }
+  },
+
   deleteStudentController: async (req: any) => {
     const userId: number = parseInt(req.user.userId);
     if (isNaN(userId)) {
@@ -92,6 +177,9 @@ export const studentController = {
     if (result.affectedRows === 0) {
       return req.status(404, { sucess: false, message: "student not found" });
     }
-    return req.status(200, { sucess: true, message: "student deleted successfully" });
+    return req.status(200, {
+      sucess: true,
+      message: "student deleted successfully",
+    });
   },
 };

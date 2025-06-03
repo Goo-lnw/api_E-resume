@@ -22,9 +22,9 @@ export const RegisterSchema = t.Object({
 });
 
 export const bodyCreateStudent = t.Object({
-  student_name: t.String(),
   student_email: t.String({ format: "email" }),
   student_password: t.String(),
+  student_main_id: t.String(),
 });
 
 export const addWork_historySchema = t.Object({
