@@ -437,12 +437,14 @@ export const ResumeController = {
       const DataSchema = z.object({
         resume_id: z.number(),
         resume_status: z.number().optional().nullable(),
-        teacher_id: z.number().optional().nullable()
+        teacher_id: z.number().optional().nullable(),
+        resume_teacher_comment: z.string().optional().nullable()
       });
       const validatedData = DataSchema.safeParse({
         resume_id: resume_id,
         resume_status: ctxBody.resume_status,
-        teacher_id: ctxBody.teacher_id
+        teacher_id: ctxBody.teacher_id,
+        resume_teacher_comment: ctxBody.resume_teacher_comment
       });
       if (!validatedData.success) {
         let err: any[] = [];
@@ -453,12 +455,15 @@ export const ResumeController = {
         throw new Error("Valadition Fail", { cause: err });
       }
 
-      let set: { resume_status?: number; teacher_id?: number; } = {};
+      let set: { resume_status?: number; teacher_id?: number; resume_teacher_comment?: string } = {};
       if (validatedData.data.resume_status) {
         set.resume_status = validatedData.data.resume_status
       }
       if (validatedData.data.teacher_id) {
         set.teacher_id = validatedData.data.teacher_id
+      }
+      if (validatedData.data.resume_teacher_comment) {
+        set.resume_teacher_comment = validatedData.data.resume_teacher_comment
       }
 
       const sql = "UPDATE resume SET ? WHERE resume_id = ? ";
