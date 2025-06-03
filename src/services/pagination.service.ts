@@ -30,6 +30,4 @@ const getPagination = async (
   };
 };
 
-
-
 export { getPagination };
