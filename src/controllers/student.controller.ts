@@ -74,4 +74,8 @@ export const studentController = {
       connection.release();
     }
   },
+
+  testStudent: async (ctx: any) => {
+    console.log("access");
+  },
 };
