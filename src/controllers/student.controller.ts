@@ -25,7 +25,6 @@ export const studentController = {
 
   createStudent: async (ctx: any) => {
     const {
-      student_name,
       student_email,
       student_password, //no hash --
     } = ctx.body;
@@ -33,9 +32,8 @@ export const studentController = {
     try {
       await connection.beginTransaction();
 
-      const sql = `INSERT INTO student (student_name, student_email, student_password) VALUES (?, ?, ?)`;
+      const sql = `INSERT INTO student (student_email, student_password) VALUES (?, ?, ?)`;
       const [rows_insert]: any = await connection.query(sql, [
-        student_name,
         student_email,
         student_password,
       ]);
@@ -104,13 +102,16 @@ export const studentController = {
 
       const ValidatedEntryData: any = ValidatedEntry.data;
 
-      if (ValidatedEntryData.student_old_password !== undefined && ValidatedEntryData.student_password !== undefined) {
+      if (
+        ValidatedEntryData.student_old_password !== undefined &&
+        ValidatedEntryData.student_password !== undefined
+      ) {
         const oldUserData = await studentController.getStudentById(ctx);
         const oldPass = oldUserData.student_password;
         const oldPassEntry = ctx.body.student_old_password;
         const passCompare = await Bun.password.verify(oldPassEntry, oldPass);
         if (!passCompare) {
-          throw ("old password wrong reentry and try again");
+          throw "old password wrong reentry and try again";
         }
         // if contain password hash pass
         const hashedPassword = await Bun.password.hash(
@@ -118,10 +119,16 @@ export const studentController = {
         );
         ValidatedEntryData["student_password"] = hashedPassword;
         delete ValidatedEntryData.student_old_password;
-      } else if (ValidatedEntryData.student_old_password === undefined && ValidatedEntryData.student_password !== undefined) {
-        throw new Error("Please enter your old password and try again")
-      } else if (ValidatedEntryData.student_old_password !== undefined && ValidatedEntryData.student_password === undefined) {
-        throw new Error("please entry your new password and try again")
+      } else if (
+        ValidatedEntryData.student_old_password === undefined &&
+        ValidatedEntryData.student_password !== undefined
+      ) {
+        throw new Error("Please enter your old password and try again");
+      } else if (
+        ValidatedEntryData.student_old_password !== undefined &&
+        ValidatedEntryData.student_password === undefined
+      ) {
+        throw new Error("please entry your new password and try again");
       } else {
       }
 
@@ -168,7 +175,9 @@ export const studentController = {
     if (result.affectedRows === 0) {
       return req.status(404, { sucess: false, message: "student not found" });
     }
-    return req.status(200, { sucess: true, message: "student deleted successfully" });
+    return req.status(200, {
+      sucess: true,
+      message: "student deleted successfully",
+    });
   },
-
 };
