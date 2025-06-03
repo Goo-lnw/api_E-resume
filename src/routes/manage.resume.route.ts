@@ -36,4 +36,5 @@ export const manageResumeRoutes = (app: Elysia) =>
       .put("/:resume_id/training", ResumeController.addTraning, {
         body: addTraningSchema,
       })
+      .put("/:resume_id/edit", ResumeController.editResume)
   );
