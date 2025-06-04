@@ -6,10 +6,7 @@ export const studentController = {
     try {
       const sql = `SELECT student_id , student_name, student_email,student_main_id, student_phone, student_phone FROM student`;
       const [rows]: any = await pool.query(sql);
-      if (rows.length === 0) {
-        return { status: 200, success: true, data: [] };
-      }
-      return { status: 200, success: true, data: rows };
+      return rows;
     } catch (error) {
       throw error;
     }
