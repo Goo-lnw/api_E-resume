@@ -26,7 +26,11 @@ export const bodyCreateStudent = t.Object({
   student_password: t.String(),
   student_main_id: t.String(),
 });
-
+export const bodyCreateTeacher = t.Object({
+  teacher_email: t.String({ format: "email" }),
+  teacher_password: t.String(),
+  // teacher_main_id: t.Optional(t.Union([t.String(), t.Null()])),
+});
 export const addWork_historySchema = t.Object({
   work_experience_company_name: t.Union([t.String(), t.Null()]),
   work_experience_position: t.Union([t.String(), t.Null()]),

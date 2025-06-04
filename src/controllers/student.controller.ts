@@ -32,11 +32,11 @@ export const studentController = {
     const connection = await pool.getConnection();
     try {
       await connection.beginTransaction();
-
+      const hashedPassword = await Bun.password.hash(student_password);
       const sql = `INSERT INTO student (student_email, student_password , student_main_id) VALUES (?, ?, ?)`;
       const [rows_insert]: any = await connection.query(sql, [
         student_email,
-        student_password,
+        hashedPassword,
         student_main_id,
       ]);
 
@@ -74,17 +74,15 @@ export const studentController = {
       connection.release();
     }
   },
-
-  testStudent: async (ctx: any) => {
-    console.log("access");
-  },
+  //   console.log("access");
+  // },
 
   editStudentController: async (ctx: any) => {
     try {
       const userId: number = parseInt(ctx.params.student_id);
-
       const data = ctx.body;
       const userEntry = z.object({
+        student_main_id: z.string().optional().nullable(),
         student_name: z.string().optional().nullable(),
         student_email: z.string().email().optional().nullable(),
         student_phone: z.string().min(10).max(15).optional().nullable(),
@@ -163,23 +161,20 @@ export const studentController = {
     }
   },
 
-  deleteStudentController: async (req: any) => {
-    const userId: number = parseInt(req.user.userId);
-    if (isNaN(userId)) {
-      return req.status(400, { sucess: false, message: "Invalid student ID" });
+  deleteStudentController: async (ctx: any) => {
+    const student_id: number = parseInt(ctx.params.student_id);
+    if (isNaN(student_id)) {
+      return ctx.status(400, { sucess: false, message: "Invalid student ID" });
     }
     const [result]: any = await pool.query(
       "DELETE FROM student WHERE student_id = ?",
-      [userId]
+      [student_id]
     );
-    console.log(result);
+    // console.log(result);
 
     if (result.affectedRows === 0) {
-      return req.status(404, { sucess: false, message: "student not found" });
+      return { message: "student not found", status: 404 };
     }
-    return req.status(200, {
-      sucess: true,
-      message: "student deleted successfully",
-    });
+    return { message: "student deleted successfully", status: 200 };
   },
 };
