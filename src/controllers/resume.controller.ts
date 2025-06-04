@@ -88,7 +88,7 @@ export const ResumeController = {
                       resume.resume_id = education_history.resume_id
                   `;
       const [rows]: any = await pool.query(sql);
-      return { status: 200, success: true, data: rows };
+      return rows;
     } catch (error) {
       throw error;
     }
@@ -181,7 +181,7 @@ export const ResumeController = {
                     WHERE resume.resume_id = ? 
                       `;
       const [rows]: any = await pool.query(sql, [resume_id]);
-      return { status: 200, sucess: true, data: rows[0] };
+      return rows[0];
     } catch (error) {
       throw error;
     }
