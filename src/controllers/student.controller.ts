@@ -6,7 +6,7 @@ export const studentController = {
     try {
       const sql = `SELECT student_id , student_name, student_email,student_main_id, student_phone, student_phone FROM student`;
       const [rows]: any = await pool.query(sql);
-      return rows;
+      return { status: 200, success: true, data: rows };
     } catch (error) {
       throw error;
     }
@@ -17,7 +17,7 @@ export const studentController = {
       const student_id = ctx.params.student_id;
       const sql = `SELECT * FROM student WHERE student_id = ? `;
       const [rows]: any = await pool.query(sql, [student_id]);
-      return rows[0];
+      return { status: 200, success: true, data: rows[0] };
     } catch (error) {
       throw error;
     }
@@ -66,7 +66,7 @@ export const studentController = {
       ]);
 
       await connection.commit();
-      return { message: "success", status: 200 };
+      return { message: "student created successfully", success: true, status: 200 };
     } catch (err) {
       await connection.rollback();
       throw err;
@@ -74,8 +74,6 @@ export const studentController = {
       connection.release();
     }
   },
-  //   console.log("access");
-  // },
 
   editStudentController: async (ctx: any) => {
     try {
@@ -107,7 +105,7 @@ export const studentController = {
         ValidatedEntryData.student_password !== undefined
       ) {
         const oldUserData = await studentController.getStudentById(ctx);
-        const oldPass = oldUserData.student_password;
+        const oldPass = oldUserData.data.student_password;
         const oldPassEntry = ctx.body.student_old_password;
         const passCompare = await Bun.password.verify(oldPassEntry, oldPass);
         if (!passCompare) {
@@ -136,45 +134,47 @@ export const studentController = {
       const [result]: any = await pool.query(sql, [ValidatedEntryData, userId]);
 
       if (result.affectedRows == 0) {
-        return ctx.status(404, {
+        return {
+          status: 404,
           success: false,
           message: "user id didn't found",
-        });
+        };
       }
 
       if (result.changedRows == 0) {
         throw "No data changed";
       }
 
-      return ctx.status(200, {
+      return {
+        status: 200,
         success: true,
         message: "User edited successfully",
         data: result,
-      });
+      };
     } catch (error: any) {
       console.error("Unexpected error: ", error);
-      return ctx.status(500, {
+      return {
+        status: 500,
         success: false,
         message: "Unexpected error",
         detail: error,
-      });
+      };
     }
   },
 
   deleteStudentController: async (ctx: any) => {
     const student_id: number = parseInt(ctx.params.student_id);
     if (isNaN(student_id)) {
-      return ctx.status(400, { sucess: false, message: "Invalid student ID" });
+      return { status: 400, sucess: false, message: "Invalid student ID" };
     }
     const [result]: any = await pool.query(
       "DELETE FROM student WHERE student_id = ?",
       [student_id]
     );
-    // console.log(result);
 
     if (result.affectedRows === 0) {
-      return { message: "student not found", status: 404 };
+      return { message: "student not found", success: false, status: 404 };
     }
-    return { message: "student deleted successfully", status: 200 };
+    return { message: "student deleted successfully", success: true, status: 200 };
   },
 };

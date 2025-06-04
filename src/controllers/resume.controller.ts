@@ -1,7 +1,7 @@
 // import { getPagination } from "../services/pagination.service";
 import { parse } from "dotenv";
 import { pool } from "../utils/db";
-import { z } from "zod/v4"
+import { success, z } from "zod/v4"
 export const ResumeController = {
   getResume: async () => {
     try {
@@ -88,7 +88,7 @@ export const ResumeController = {
                       resume.resume_id = education_history.resume_id
                   `;
       const [rows]: any = await pool.query(sql);
-      return rows;
+      return { status: 200, success: true, data: rows };
     } catch (error) {
       throw error;
     }
@@ -181,7 +181,7 @@ export const ResumeController = {
                     WHERE resume.resume_id = ? 
                       `;
       const [rows]: any = await pool.query(sql, [resume_id]);
-      return rows[0];
+      return { status: 200, sucess: true, data: rows[0] };
     } catch (error) {
       throw error;
     }
@@ -199,6 +199,7 @@ export const ResumeController = {
       ]);
       return {
         message: "Education history added successfully",
+        success: true,
         status: 200,
         insertId: rows.insertId,
       };
@@ -251,6 +252,7 @@ export const ResumeController = {
 
       return {
         message: "Education history added successfully",
+        success: true,
         status: 200,
         insertId: rows.insertId,
       };
@@ -295,6 +297,7 @@ export const ResumeController = {
 
       return {
         message: "Work experience added successfully",
+        success: true,
         status: 200,
         insertId: rows.insertId,
       };
@@ -339,6 +342,7 @@ export const ResumeController = {
 
       return {
         message: "Internship added successfully",
+        success: true,
         status: 200,
         insertId: rows.insertId,
       };
@@ -380,6 +384,7 @@ export const ResumeController = {
 
       return {
         message: "Project added successfully",
+        success: true,
         status: 200,
         insertId: rows.insertId,
       };
@@ -421,6 +426,7 @@ export const ResumeController = {
 
       return {
         message: "Training added successfully",
+        success: true,
         status: 200,
         insertId: rows.insertId,
       };
@@ -479,9 +485,9 @@ export const ResumeController = {
         throw ("UPDATE ERROR : Resume data didn't change");
       }
 
-      // return result;
       return {
         message: "resume edit successfully",
+        success: true,
         status: 200
       };
     } catch (err) {

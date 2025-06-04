@@ -1,17 +1,14 @@
 import { getPagination } from "../services/pagination.service";
 import { getUserByEmail } from "../services/user.service";
 import { pool } from "../utils/db";
-import { z } from "zod/v4";
+import { success, z } from "zod/v4";
 
 export const teacherController = {
-    testTeacherController: async () => {
-        console.log("access");
-    },
     getTeachers: async () => {
         try {
             const sql = `SELECT teacher_id , teacher_name, teacher_email,teacher_main_id, teacher_phone, teacher_phone FROM teacher`;
             const [rows]: any = await pool.query(sql);
-            return rows;
+            return { status: 200, success: true, data: rows };
         } catch (error) {
             throw error;
         }
@@ -22,7 +19,7 @@ export const teacherController = {
             const teacher_id = ctx.params.teacher_id;
             const sql = `SELECT * FROM teacher WHERE teacher_id = ? `;
             const [rows]: any = await pool.query(sql, [teacher_id]);
-            return rows[0];
+            return { status: 200, success: true, data: rows[0] };
         } catch (error) {
             throw error;
         }
@@ -38,25 +35,18 @@ export const teacherController = {
         try {
             const sql = `INSERT INTO teacher (teacher_email, teacher_password) VALUES (?, ?)`;
             const hashedPassword = await Bun.password.hash(teacher_password)
-            console.log(hashedPassword);
-
             const [rows_insert]: any = await connection.query(sql, [
                 teacher_email,
                 hashedPassword
             ]);
-            // console.log(rows_insert);
 
-            return { message: "success", status: 200 };
+            return { message: "teacher create success", success: true, status: 200 };
         } catch (err) {
             await connection.rollback();
             throw err;
         } finally {
             connection.release();
         }
-    },
-
-    testTeacher: async (ctx: any) => {
-        console.log("access");
     },
 
     editTeacherController: async (ctx: any) => {
@@ -89,7 +79,7 @@ export const teacherController = {
                 ValidatedEntryData.teacher_password !== undefined
             ) {
                 const oldUserData = await teacherController.getTeacherById(ctx);
-                const oldPass = oldUserData.teacher_password;
+                const oldPass = oldUserData.data.teacher_password;
                 const oldPassEntry = ctx.body.teacher_old_password;
                 const passCompare = await Bun.password.verify(oldPassEntry, oldPass);
                 if (!passCompare) {
@@ -118,48 +108,48 @@ export const teacherController = {
             const [result]: any = await pool.query(sql, [ValidatedEntryData, userId]);
 
             if (result.affectedRows == 0) {
-                return ctx.status(404, {
+                return {
+                    status: 404,
                     success: false,
                     message: "user id didn't found",
-                });
+                };
             }
 
             if (result.changedRows == 0) {
                 throw "No data changed";
             }
-
-            return ctx.status(200, {
+            return {
+                message: "resume edit successfully",
+                status: 200,
                 success: true,
-                message: "User edited successfully",
                 data: result,
-            });
+            };
+
         } catch (error: any) {
             console.error("Unexpected error: ", error);
-            return ctx.status(500, {
-                success: false,
+            return {
                 message: "Unexpected error",
+                status: 500,
+                success: false,
                 detail: error,
-            });
+            };
         }
     },
 
     deleteTeacherController: async (req: any) => {
         const userId: number = parseInt(req.params.teacher_id);
         if (isNaN(userId)) {
-            return req.status(400, { sucess: false, message: "Invalid teacher ID" });
+            return { status: 400, sucess: false, message: "Invalid teacher ID" };
         }
         const [result]: any = await pool.query(
             "DELETE FROM teacher WHERE teacher_id = ?",
             [userId]
         );
-        console.log(result);
+        // console.log(result);
 
         if (result.affectedRows === 0) {
-            return req.status(404, { sucess: false, message: "teacher not found" });
+            return { status: 404, sucess: false, message: "teacher not found" };
         }
-        return req.status(200, {
-            sucess: true,
-            message: "teacher deleted successfully",
-        });
+        return { status: 200, sucess: true, message: "teacher deleted successfully", };
     },
 };
