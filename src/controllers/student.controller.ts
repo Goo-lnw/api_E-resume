@@ -6,6 +6,9 @@ export const studentController = {
     try {
       const sql = `SELECT student_id , student_name, student_email,student_main_id, student_phone, student_phone FROM student`;
       const [rows]: any = await pool.query(sql);
+      if (rows.length === 0) {
+        return { status: 200, success: true, data: [] };
+      }
       return { status: 200, success: true, data: rows };
     } catch (error) {
       throw error;
@@ -66,7 +69,11 @@ export const studentController = {
       ]);
 
       await connection.commit();
-      return { message: "student created successfully", success: true, status: 200 };
+      return {
+        message: "student created successfully",
+        success: true,
+        status: 200,
+      };
     } catch (err) {
       await connection.rollback();
       throw err;
@@ -175,6 +182,10 @@ export const studentController = {
     if (result.affectedRows === 0) {
       return { message: "student not found", success: false, status: 404 };
     }
-    return { message: "student deleted successfully", success: true, status: 200 };
+    return {
+      message: "student deleted successfully",
+      success: true,
+      status: 200,
+    };
   },
 };
