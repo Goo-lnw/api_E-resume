@@ -17,7 +17,7 @@ export const studentController = {
       const student_id = ctx.params.student_id;
       const sql = `SELECT * FROM student WHERE student_id = ? `;
       const [rows]: any = await pool.query(sql, [student_id]);
-      return { status: 200, success: true, data: rows[0] };
+      return rows[0];
     } catch (error) {
       throw error;
     }
