@@ -53,18 +53,19 @@ export const studentController = {
 
       await Promise.all([
         insertResumePart(`INSERT INTO skill (resume_id) VALUES (?)`),
-        insertResumePart(
-          `INSERT INTO education_history (resume_id) VALUES (?)`
-        ),
+        insertResumePart(`INSERT INTO education_history (resume_id) VALUES (?)`),
         insertResumePart(`INSERT INTO work_experience (resume_id) VALUES (?)`),
         insertResumePart(`INSERT INTO project (resume_id) VALUES (?)`),
-        insertResumePart(`INSERT INTO notification (resume_id) VALUES (?)`),
+        // insertResumePart(`INSERT INTO notification (resume_id) VALUES (?)`),
         insertResumePart(`INSERT INTO internship (resume_id) VALUES (?)`),
         insertResumePart(`INSERT INTO training_history (resume_id) VALUES (?)`),
         insertResumePart(`INSERT INTO soft_skill (resume_id) VALUES (?)`),
         insertResumePart(`INSERT INTO additional_info (resume_id) VALUES (?)`),
       ]);
-
+      const [new_notification]: any = await connection.query(
+        `INSERT INTO notification (resume_id,student_id) VALUES (?,?)`,
+        [new_resume_id, new_student_id]
+      );
       await connection.commit();
       return {
         message: "student created successfully",
