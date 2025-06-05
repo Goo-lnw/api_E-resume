@@ -8,7 +8,7 @@ export const teacherController = {
         try {
             const sql = `SELECT teacher_id , teacher_name, teacher_email,teacher_main_id, teacher_phone, teacher_phone FROM teacher`;
             const [rows]: any = await pool.query(sql);
-            return { status: 200, success: true, data: rows };
+            return rows;
         } catch (error) {
             throw error;
         }
@@ -19,7 +19,7 @@ export const teacherController = {
             const teacher_id = ctx.params.teacher_id;
             const sql = `SELECT * FROM teacher WHERE teacher_id = ? `;
             const [rows]: any = await pool.query(sql, [teacher_id]);
-            return { status: 200, success: true, data: rows[0] };
+            return rows[0];
         } catch (error) {
             throw error;
         }

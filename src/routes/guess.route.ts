@@ -1,11 +1,11 @@
 import { Elysia } from "elysia";
 import { guessController } from "../controllers/guess.controller";
-import { RegisterSchema, LoginSchema } from "../schema/sql.schema";
+import { bodyCreateStudent, LoginSchema } from "../schema/sql.schema";
 
 export const guessRoutes = (app: Elysia) =>
   app
     .post("/register", guessController.registerController, {
-      body: RegisterSchema,
+      body: bodyCreateStudent,
     })
     .post("/login", guessController.loginController, {
       body: LoginSchema,

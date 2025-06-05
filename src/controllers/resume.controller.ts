@@ -3,90 +3,96 @@ import { parse } from "dotenv";
 import { pool } from "../utils/db";
 import { success, z } from "zod/v4"
 export const ResumeController = {
-  getResume: async () => {
+  getResume: async (ctx: any) => {
     try {
-      const sql = `SELECT
-                    resume.resume_id, 
-                    resume.student_id, 
-                    student.student_name, 
-                    student.student_email, 
-                    student.student_phone, 
-                    student.student_profile_image, 
-                    internship.internship_company_name, 
-                    internship.internship_position, 
-                    internship.internship_start_date, 
-                    internship.internship_id, 
-                    internship.internship_end_date, 
-                    internship.internship_description, 
-                    internship.internship_related_files, 
-                    skill.skill_id, 
-                    skill.skill_name, 
-                    skill.skill_type, 
-                    skill.skill_proficiency, 
-                    training_history.training_history_id, 
-                    training_history.training_history_course_name, 
-                    training_history.training_history_organization, 
-                    training_history.training_history_location, 
-                    training_history.training_history_date, 
-                    training_history.training_history_certificate_file, 
-                    work_experience.work_experience_id, 
-                    work_experience.work_experience_company_name, 
-                    work_experience.work_experience_position, 
-                    work_experience.work_experience_start_date, 
-                    work_experience.work_experience_end_date, 
-                    work_experience.work_experience_description, 
-                    work_experience.work_experience_highlight, 
-                    notification.notification_id, 
-                    notification.notification_message, 
-                    notification.is_read, 
-                    notification.created_at, 
-                    student.student_id, 
-                    additional_info.additional_info_id, 
-                    additional_info.additional_info_title, 
-                    additional_info.additional_info_description, 
-                    additional_info.additional_info_file_attachment, 
-                    education_history.education_history_id, 
-                    education_history.education_history_institution, 
-                    education_history.education_history_major, 
-                    education_history.education_history_start_year, 
-                    education_history.education_history_gpa, 
-                    education_history.education_history_notes
-                  FROM
-                    resume
-                    LEFT JOIN
-                    student
-                    ON 
-                      resume.student_id = student.student_id
-                    LEFT JOIN
-                    internship
-                    ON 
-                      resume.resume_id = internship.resume_id
-                    LEFT JOIN
-                    skill
-                    ON 
-                      resume.resume_id = skill.resume_id
-                    LEFT JOIN
-                    training_history
-                    ON 
-                      resume.resume_id = training_history.resume_id
-                    LEFT JOIN
-                    work_experience
-                    ON 
-                      resume.resume_id = work_experience.resume_id
-                    LEFT JOIN
-                    notification
-                    ON 
-                      resume.resume_id = notification.resume_id AND
-                      student.student_id = notification.student_id
-                    LEFT JOIN
-                    additional_info
-                    ON 
-                      resume.resume_id = additional_info.resume_id
-                    LEFT JOIN
-                    education_history
-                    ON 
-                      resume.resume_id = education_history.resume_id
-                  `;
+      console.log(ctx.query);
+
+      let sql = `SELECT
+                  resume.resume_id, 
+                  resume.student_id, 
+                  student.student_name, 
+                  student.student_email, 
+                  student.student_phone, 
+                  student.student_profile_image, 
+                  internship.internship_company_name, 
+                  internship.internship_position, 
+                  internship.internship_start_date, 
+                  internship.internship_id, 
+                  internship.internship_end_date, 
+                  internship.internship_description, 
+                  internship.internship_related_files, 
+                  skill.skill_id, 
+                  skill.skill_name, 
+                  skill.skill_type, 
+                  skill.skill_proficiency, 
+                  training_history.training_history_id, 
+                  training_history.training_history_course_name, 
+                  training_history.training_history_organization, 
+                  training_history.training_history_location, 
+                  training_history.training_history_date, 
+                  training_history.training_history_certificate_file, 
+                  work_experience.work_experience_id, 
+                  work_experience.work_experience_company_name, 
+                  work_experience.work_experience_position, 
+                  work_experience.work_experience_start_date, 
+                  work_experience.work_experience_end_date, 
+                  work_experience.work_experience_description, 
+                  work_experience.work_experience_highlight, 
+                  notification.notification_id, 
+                  notification.notification_message, 
+                  notification.is_read, 
+                  notification.created_at, 
+                  student.student_id, 
+                  additional_info.additional_info_id, 
+                  additional_info.additional_info_title, 
+                  additional_info.additional_info_description, 
+                  additional_info.additional_info_file_attachment, 
+                  education_history.education_history_id, 
+                  education_history.education_history_institution, 
+                  education_history.education_history_major, 
+                  education_history.education_history_start_year, 
+                  education_history.education_history_gpa, 
+                  education_history.education_history_notes
+                FROM
+                  resume
+                  LEFT JOIN
+                  student
+                  ON 
+                    resume.student_id = student.student_id
+                  LEFT JOIN
+                  internship
+                  ON 
+                    resume.resume_id = internship.resume_id
+                  LEFT JOIN
+                  skill
+                  ON 
+                    resume.resume_id = skill.resume_id
+                  LEFT JOIN
+                  training_history
+                  ON 
+                    resume.resume_id = training_history.resume_id
+                  LEFT JOIN
+                  work_experience
+                  ON 
+                    resume.resume_id = work_experience.resume_id
+                  LEFT JOIN
+                  notification
+                  ON 
+                    resume.resume_id = notification.resume_id AND
+                    student.student_id = notification.student_id
+                  LEFT JOIN
+                  additional_info
+                  ON 
+                    resume.resume_id = additional_info.resume_id
+                  LEFT JOIN
+                  education_history
+                  ON 
+                    resume.resume_id = education_history.resume_id
+                `;
+      if (ctx.query.status) {
+        sql += ` WHERE resume_status = ${ctx.query.status}`;
+      }
+
       const [rows]: any = await pool.query(sql);
       return rows;
     } catch (error) {
@@ -207,18 +213,6 @@ export const ResumeController = {
       throw error;
     }
   },
-
-  // add_additional_info: async (ctx: any) => {
-  //   try {
-  //     const resume_id = ctx.params.resume_id;
-  //     const { skill_name } = ctx.body;
-  //     const sql = `UPDATE resume SET resume_status = ? WHERE resume_id = ?`;
-  //     const [rows]: any = await pool.query(sql, [resume_id, skill_name]);
-  //     return rows;
-  //   } catch (error) {
-  //     throw error;
-  //   }
-  // },
 
   addEducationHistory: async (ctx: any) => {
     try {
@@ -439,8 +433,6 @@ export const ResumeController = {
   editResume: async (ctx: any) => {
     try {
       const ctxBody = ctx.body;
-      console.log(ctx.user);
-
       const resume_id = parseInt(ctx.params.resume_id);
       const DataSchema = z.object({
         resume_id: z.number(),
@@ -462,7 +454,7 @@ export const ResumeController = {
         }
         throw new Error("Valadition Fail", { cause: err });
       }
-
+      // set dynamic UPDATE query SET 
       let set: { resume_status?: number; teacher_id?: number; resume_teacher_comment?: string } = {};
       if (validatedData.data.resume_status) {
         set.resume_status = validatedData.data.resume_status
@@ -473,16 +465,25 @@ export const ResumeController = {
       if (validatedData.data.resume_teacher_comment) {
         set.resume_teacher_comment = validatedData.data.resume_teacher_comment
       }
-
+      //  update resume
       const sql = "UPDATE resume SET ? WHERE resume_id = ? ";
       const [result]: any = await pool.query(sql, [set, validatedData.data.resume_id]);
-      console.log(result);
       if (result.affectedRows === 0) {
         throw ("UPDATE ERROR : Resume not found or wrong ID");
       }
-
       if (result.changedRows === 0) {
         throw ("UPDATE ERROR : Resume data didn't change");
+      }
+      //  update Notification ตาม resume status
+      if (validatedData.data.resume_status && validatedData.data.resume_status === 3) {
+        let notificationSet = { notification_message: "Resume ของคุณถูกอนุมัติแล้ว", is_read: 1 }
+        const sql = "UPDATE notification SET ? WHERE resume_id = ?";
+        const [notificationResult]: any = await pool.query(sql, [notificationSet, validatedData.data.resume_id]);
+      }
+      if (validatedData.data.resume_status && validatedData.data.resume_status === 4) {
+        let notificationSet = { notification_message: "Resume ของคุณถูกปฎิเสธ กรุณาตรวจสอบ", is_read: 1 }
+        const sql = "UPDATE notification SET ? WHERE resume_id = ?";
+        const [notificationResult]: any = await pool.query(sql, [notificationSet, validatedData.data.resume_id]);
       }
 
       return {

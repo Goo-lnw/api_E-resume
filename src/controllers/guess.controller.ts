@@ -41,33 +41,54 @@ export const guessController = {
     }
   },
 
-  registerController: async (req: any) => {
+  registerController: async (ctx: any) => {
+    const {
+      student_email,
+      student_password, //no hash --
+      student_main_id,
+    } = ctx.body;
+    const connection = await pool.getConnection();
     try {
-      const data = req.body;
+      await connection.beginTransaction();
+      const hashedPassword = await Bun.password.hash(student_password);
+      const sql = `INSERT INTO student (student_email, student_password , student_main_id) VALUES (?, ?, ?)`;
+      const [rows_insert]: any = await connection.query(sql, [
+        student_email,
+        hashedPassword,
+        student_main_id,
+      ]);
 
-      const user = await getUserByEmail(data.student_email); //ถ้าเมลซ้ำกับตาราง teacher จะสร้างไม่ได้
-      // console.log("user in registerController:", user);
-
-      if (user && Object.keys(user).length > 0) {
-        return { message: "User already exists", status: 409 };
-      }
-
-      const hashedPassword = await Bun.password.hash(data.student_password);
-      const result = await pool.query(
-        "INSERT INTO student (student_name, student_email, student_phone, student_password, student_profile_image) VALUES (?, ?, ?, ?, ?)",
-        [
-          data.student_name,
-          data.student_email,
-          data.student_phone,
-          hashedPassword,
-          data.student_profile_image || null,
-        ]
+      const new_student_id = rows_insert.insertId;
+      const [new_resume]: any = await connection.query(
+        `INSERT INTO resume (student_id) VALUES (?)`,
+        [new_student_id]
       );
 
+      const new_resume_id = new_resume.insertId;
+
+      const insertResumePart = (query: string) =>
+        connection.query(query, [new_resume_id]);
+
+      await Promise.all([
+        insertResumePart(`INSERT INTO skill (resume_id) VALUES (?)`),
+        insertResumePart(`INSERT INTO education_history (resume_id) VALUES (?)`),
+        insertResumePart(`INSERT INTO work_experience (resume_id) VALUES (?)`),
+        insertResumePart(`INSERT INTO project (resume_id) VALUES (?)`),
+        // insertResumePart(`INSERT INTO notification (resume_id) VALUES (?)`),
+        insertResumePart(`INSERT INTO internship (resume_id) VALUES (?)`),
+        insertResumePart(`INSERT INTO training_history (resume_id) VALUES (?)`),
+        insertResumePart(`INSERT INTO soft_skill (resume_id) VALUES (?)`),
+        insertResumePart(`INSERT INTO additional_info (resume_id) VALUES (?)`),
+      ]);
+      const [new_notification]: any = await connection.query(
+        `INSERT INTO notification (resume_id,student_id) VALUES (?,?)`,
+        [new_resume_id, new_student_id]
+      );
+      await connection.commit();
       return {
-        message: "User registered successfully",
-        status: 201,
-        data: result,
+        message: "student created successfully",
+        success: true,
+        status: 200,
       };
     } catch (err: any) {
       if (err.code === "ER_DUP_ENTRY") {
