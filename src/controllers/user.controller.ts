@@ -3,11 +3,11 @@ import pool from "../utils/db";
 
 export const UserController = {
 
-    getStudentSession: async (ctx: any) => {
-        console.log();
-        const auth_id = ctx.user.userId
-        try {
-            const sql = `SELECT
+  getStudentSession: async (ctx: any) => {
+    console.log();
+    const auth_id = ctx.user.userId
+    try {
+      const sql = `SELECT
                     resume.resume_id, 
                     resume.student_id, 
                     student.student_name, 
@@ -88,13 +88,13 @@ export const UserController = {
                     education_history
                     ON 
                       resume.resume_id = education_history.resume_id 
-                    WHERE resume.resume_id = ? `;
-            const [row]: any = await pool.query(sql, [auth_id])
-            return row[0]
-        } catch (err) {
-            console.log(err);
+                    WHERE resume.student_id = ? `;
+      const [row]: any = await pool.query(sql, [auth_id])
+      return row[0]
+    } catch (err) {
+      console.log(err);
 
-        }
     }
+  }
 
 };
