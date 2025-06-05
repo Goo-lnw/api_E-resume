@@ -1,6 +1,7 @@
 import { Elysia } from "elysia";
 import { bodyCreateStudent } from "../schema/sql.schema";
 import { studentController } from "../controllers/student.controller";
+import { UserController } from "../controllers/user.controller";
 export const studentRoutes = (app: Elysia) =>
   app.group("/student", (app) =>
     app
@@ -11,4 +12,5 @@ export const studentRoutes = (app: Elysia) =>
       .post("", studentController.createStudent, {
         body: bodyCreateStudent,
       })
+      .get("/protected", UserController.getStudentSession)
   );
