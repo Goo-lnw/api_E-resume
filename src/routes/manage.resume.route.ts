@@ -6,6 +6,7 @@ import {
   addSkillSchema,
   addEducationHistorySchema,
   addTraningSchema,
+  addSoftSkillSchema,
 } from "../schema/sql.schema";
 import { ResumeController } from "../controllers/resume.controller";
 export const manageResumeRoutes = (app: Elysia) =>
@@ -13,23 +14,46 @@ export const manageResumeRoutes = (app: Elysia) =>
     app
       .get("", ResumeController.getResume)
       .get("/:resume_id", ResumeController.getResumeById)
-      .put("/:resume_id/soft-skill", ResumeController.addSoftSkill, {
+
+      .put("/skill/:skill_id", ResumeController.addSkill, {
         body: addSkillSchema,
       })
-      .put("/:resume_id/education-history", ResumeController.addEducationHistory, {
-        body: addEducationHistorySchema,
+      .put("/soft_skill/:soft_skill_id", ResumeController.addSoftSkill, {
+        body: addSoftSkillSchema,
       })
-      .put("/:resume_id/work-experience", ResumeController.addWorkExperience, {
-        body: addWork_historySchema,
-      })
-      .put("/:resume_id/internship", ResumeController.addinternship, {
+
+      .put(
+        "/education-history/:education_history_id",
+        ResumeController.addEducationHistory,
+        {
+          body: addEducationHistorySchema,
+        }
+      )
+      .put(
+        "/work-experience/:work_experience_id",
+        ResumeController.addWorkExperience,
+        {
+          body: addWork_historySchema,
+        }
+      )
+      .put("/internship/:internship_id", ResumeController.addinternship, {
         body: addinternshipSchema,
       })
-      .put("/:resume_id/project", ResumeController.addproject, {
+      .put("/project/:project_id", ResumeController.addproject, {
         body: addProjectSchema,
       })
-      .put("/:resume_id/training", ResumeController.addTraning, {
+      .put("/training/:training_id", ResumeController.addTraning, {
         body: addTraningSchema,
       })
-      .put("/:resume_id/edit", ResumeController.editResume)
+      .put("/:resume_id/edit", ResumeController.previewResume)
+      .post("/:resume_id/addSkill", ResumeController.addSkill)
+
+      .post("/education", ResumeController.increaseEducationHistory)
+      .post("/increaseSoftSkill", ResumeController.increaseSoftSkill)
+      .post("/increaseExperience", ResumeController.increaseExperience)
+      .post("/increaseInternship", ResumeController.increaseInternship)
+      .post("/increaseProject", ResumeController.increaseProject)
+      .post("/increaseTraning", ResumeController.increaseTraning)
+      .post("/increaseAdditional", ResumeController.increaseAdditional)
+      .post("/increaseSkill", ResumeController.increaseSkill)
   );
