@@ -171,6 +171,38 @@ export const UserController = {
       throw err;
     }
   },
+  getSoftSkill: async (ctx: any) => {
+    const auth_id = ctx.user.userId;
+    try {
+      const sql = `
+                  SELECT soft_skill.* FROM soft_skill 
+                  JOIN resume on soft_skill.resume_id = resume.resume_id 
+                  JOIN student on student.student_id = resume.student_id 
+                  WHERE student.student_id = ?
+      `;
+      const [rows]: any = await pool.query(sql, [auth_id]);
+      return rows;
+    } catch(err) {
+      console.log(err);
+      throw err;
+    }
+  },
+  getEducation: async (ctx: any) => {
+    const auth_id = ctx.user.userId;
+    try {
+      const sql = `
+                  SELECT education_history.* FROM education_history 
+                  JOIN resume on education_history.resume_id = resume.resume_id 
+                  JOIN student on student.student_id = resume.student_id 
+                  WHERE student.student_id = ?
+      `;
+      const [rows]: any = await pool.query(sql, [auth_id]);
+      return rows;
+    } catch(err) {
+      console.log(err);
+      throw err;
+    }
+  },
   deleteSkill: async (ctx: any) => {
     const skill_id = ctx.params.skill_id;
     try {
@@ -178,6 +210,32 @@ export const UserController = {
                   DELETE FROM skill WHERE skill_id = ?
       `;
       const [rows]: any = await pool.query(sql, [skill_id]);
+      return rows;
+    } catch(err) {
+      console.log(err);
+      throw err;
+    }
+  },
+  deleteSoftSkill: async (ctx: any) => {
+    const soft_skill_id = ctx.params.soft_skill_id;
+    try {
+      const sql = `
+                  DELETE FROM soft_skill WHERE soft_skill_id = ?
+      `;
+      const [rows]: any = await pool.query(sql, [soft_skill_id]);
+      return rows;
+    } catch(err) {
+      console.log(err);
+      throw err;
+    }
+  },
+  deleteEducation: async (ctx: any) => {
+    const education_history_id = ctx.params.education_history_id;
+    try {
+      const sql = `
+                  DELETE FROM education_history WHERE education_history_id = ?
+      `;
+      const [rows]: any = await pool.query(sql, [education_history_id]);
       return rows;
     } catch(err) {
       console.log(err);

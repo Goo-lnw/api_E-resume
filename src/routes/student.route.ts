@@ -14,4 +14,6 @@ export const studentRoutes = (app: Elysia) =>
       })
       .get("/protected", UserController.getStudentSession)
       .get("/skill", UserController.getSkill)
+      .get("/softSkill", UserController.getSoftSkill)
+      .get("/education", UserController.getEducation)
   );
