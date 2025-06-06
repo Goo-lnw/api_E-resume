@@ -216,8 +216,9 @@ export const ResumeController = {
 
   addSoftSkill: async (ctx: any) => {
     try {
-      const soft_skill_id = ctx.params.soft_kill_id;
+      const soft_skill_id = ctx.params.soft_skill_id;
       const { soft_skill_name, soft_skill_description } = ctx.body;
+      console.log(soft_skill_name);
       const sql = `UPDATE soft_skill SET soft_skill_name = ?, soft_skill_description = ? WHERE soft_skill_id = ?`;
       const [rows]: any = await pool.query(sql, [
         soft_skill_name,

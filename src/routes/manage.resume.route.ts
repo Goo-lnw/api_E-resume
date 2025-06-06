@@ -18,7 +18,7 @@ export const manageResumeRoutes = (app: Elysia) =>
       .put("/skill/:skill_id", ResumeController.addSkill, {
         body: addSkillSchema,
       })
-      .put("/soft-skill/:soft_skill_id", ResumeController.addSoftSkill, {
+      .put("/soft_skill/:soft_skill_id", ResumeController.addSoftSkill, {
         body: addSoftSkillSchema,
       })
 
