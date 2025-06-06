@@ -33,7 +33,7 @@ export const ResumeController = {
                   LEFT JOIN education_history ON resume.resume_id = education_history.resume_id 
                   LEFT JOIN soft_skill ON resume.resume_id = soft_skill.resume_id
                   LEFT JOIN project ON resume.resume_id = project.resume_id 
-                WHERE resume.resume_status = "draft"`;
+                WHERE resume.resume_status = "submitted"`;
 
     const [rows]: any = await pool.query(sql);
 
