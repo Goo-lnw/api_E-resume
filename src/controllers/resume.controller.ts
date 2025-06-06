@@ -168,7 +168,7 @@ export const ResumeController = {
 
 
   getResumeById: async (ctx: any) => {
-    const auth_id = ctx.user.userId;
+    const auth_id = ctx.params.resume_id;
     try {
       const sql = `SELECT
                     additional_info.*, 
