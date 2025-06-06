@@ -13,4 +13,5 @@ export const studentRoutes = (app: Elysia) =>
         body: bodyCreateStudent,
       })
       .get("/protected", UserController.getStudentSession)
+      .get("/skill", UserController.getSkill)
   );

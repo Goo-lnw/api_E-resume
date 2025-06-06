@@ -1,6 +1,5 @@
 import pool from "../utils/db";
 
-
 export const UserController = {
   getStudentSession: async (ctx: any) => {
     const auth_id = ctx.user.userId;
@@ -62,8 +61,8 @@ export const UserController = {
       // Helper to group unique objects
       const groupByUnique = (keyFields: string[], data: any[]) => {
         const seen = new Set();
-        return data.filter(item => {
-          const key = keyFields.map(k => item[k]).join('|');
+        return data.filter((item) => {
+          const key = keyFields.map((k) => item[k]).join("|");
           if (seen.has(key)) return false;
           seen.add(key);
           return true;
@@ -71,13 +70,13 @@ export const UserController = {
       };
 
       // Grouped arrays
-      const skills = groupByUnique(["skill_id"], rows).map(row => ({
+      const skills = groupByUnique(["skill_id"], rows).map((row) => ({
         skill_name: row.skill_name,
         skill_type: row.skill_type,
         skill_proficiency: row.skill_proficiency,
       }));
 
-      const projects = groupByUnique(["project_id"], rows).map(row => ({
+      const projects = groupByUnique(["project_id"], rows).map((row) => ({
         project_name: row.project_name,
         project_technology_used: row.project_technology_used,
         project_description: row.project_description,
@@ -85,7 +84,7 @@ export const UserController = {
         project_attachment_link: row.project_attachment_link,
       }));
 
-      const internships = groupByUnique(["internship_id"], rows).map(row => ({
+      const internships = groupByUnique(["internship_id"], rows).map((row) => ({
         internship_company_name: row.internship_company_name,
         internship_position: row.internship_position,
         internship_start_date: row.internship_start_date,
@@ -94,41 +93,50 @@ export const UserController = {
         internship_related_files: row.internship_related_files,
       }));
 
-      const education = groupByUnique(["education_history_id"], rows).map(row => ({
-        education_history_institution: row.education_history_institution,
-        education_history_major: row.education_history_major,
-        education_history_start_year: row.education_history_start_year,
-        education_history_gpa: row.education_history_gpa,
-        education_history_notes: row.education_history_notes,
-      }));
+      const education = groupByUnique(["education_history_id"], rows).map(
+        (row) => ({
+          education_history_institution: row.education_history_institution,
+          education_history_major: row.education_history_major,
+          education_history_start_year: row.education_history_start_year,
+          education_history_gpa: row.education_history_gpa,
+          education_history_notes: row.education_history_notes,
+        })
+      );
 
-      const softSkills = groupByUnique(["soft_skill_id"], rows).map(row => ({
+      const softSkills = groupByUnique(["soft_skill_id"], rows).map((row) => ({
         soft_skill_name: row.soft_skill_name,
-        soft_skill_description: row.soft_skill_description
+        soft_skill_description: row.soft_skill_description,
       }));
 
-      const training = groupByUnique(["training_history_id"], rows).map(row => ({
-        training_history_course_name: row.training_history_course_name,
-        training_history_organization: row.training_history_organization,
-        training_history_location: row.training_history_location,
-        training_history_date: row.training_history_date,
-        training_history_certificate_file: row.training_history_certificate_file,
-      }));
+      const training = groupByUnique(["training_history_id"], rows).map(
+        (row) => ({
+          training_history_course_name: row.training_history_course_name,
+          training_history_organization: row.training_history_organization,
+          training_history_location: row.training_history_location,
+          training_history_date: row.training_history_date,
+          training_history_certificate_file:
+            row.training_history_certificate_file,
+        })
+      );
 
-      const workExperience = groupByUnique(["work_experience_id"], rows).map(row => ({
-        work_experience_company_name: row.work_experience_company_name,
-        work_experience_position: row.work_experience_position,
-        work_experience_start_date: row.work_experience_start_date,
-        work_experience_end_date: row.work_experience_end_date,
-        work_experience_description: row.work_experience_description,
-        work_experience_highlight: row.work_experience_highlight,
-      }));
+      const workExperience = groupByUnique(["work_experience_id"], rows).map(
+        (row) => ({
+          work_experience_company_name: row.work_experience_company_name,
+          work_experience_position: row.work_experience_position,
+          work_experience_start_date: row.work_experience_start_date,
+          work_experience_end_date: row.work_experience_end_date,
+          work_experience_description: row.work_experience_description,
+          work_experience_highlight: row.work_experience_highlight,
+        })
+      );
 
-      const additionalInfo = groupByUnique(["additional_info_id"], rows).map(row => ({
-        additional_info_title: row.additional_info_title,
-        additional_info_description: row.additional_info_description,
-        additional_info_file_attachment: row.additional_info_file_attachment,
-      }));
+      const additionalInfo = groupByUnique(["additional_info_id"], rows).map(
+        (row) => ({
+          additional_info_title: row.additional_info_title,
+          additional_info_description: row.additional_info_description,
+          additional_info_file_attachment: row.additional_info_file_attachment,
+        })
+      );
 
       return {
         student,
@@ -140,13 +148,40 @@ export const UserController = {
         softSkills,
         training,
         workExperience,
-        additionalInfo
+        additionalInfo,
       };
-
     } catch (err) {
       console.log(err);
       throw err;
     }
-  }
+  },
+  getSkill: async (ctx: any) => {
+    const auth_id = ctx.user.userId;
+    try {
+      const sql = `
+                  SELECT skill.* FROM skill 
+                  JOIN resume on skill.resume_id = resume.resume_id 
+                  JOIN student on student.student_id = resume.student_id 
+                  WHERE student.student_id = ?
+      `;
+      const [rows]: any = await pool.query(sql, [auth_id]);
+      return rows;
+    } catch(err) {
+      console.log(err);
+      throw err;
+    }
+  },
+  deleteSkill: async (ctx: any) => {
+    const skill_id = ctx.params.skill_id;
+    try {
+      const sql = `
+                  DELETE FROM skill WHERE skill_id = ?
+      `;
+      const [rows]: any = await pool.query(sql, [skill_id]);
+      return rows;
+    } catch(err) {
+      console.log(err);
+      throw err;
+    }
+  },
 };
-

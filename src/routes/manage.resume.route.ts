@@ -9,6 +9,7 @@ import {
   addSoftSkillSchema,
 } from "../schema/sql.schema";
 import { ResumeController } from "../controllers/resume.controller";
+import { UserController } from "../controllers/user.controller";
 export const manageResumeRoutes = (app: Elysia) =>
   app.group("/resume", (app) =>
     app
@@ -55,5 +56,7 @@ export const manageResumeRoutes = (app: Elysia) =>
       .post("/increaseProject", ResumeController.increaseProject)
       .post("/increaseTraning", ResumeController.increaseTraning)
       .post("/increaseAdditional", ResumeController.increaseAdditional)
+
       .post("/increaseSkill", ResumeController.increaseSkill)
+      .delete("/deleteSkill/:skill_id", UserController.deleteSkill)
   );
