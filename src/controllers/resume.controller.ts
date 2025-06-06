@@ -195,13 +195,13 @@ export const ResumeController = {
 
   addSkill: async (ctx: any) => {
     try {
-      const resume_id = ctx.params.resume_id;
+      const skill_id = ctx.params.skill_id;
       const { skill_name, skill_type } = ctx.body;
-      const sql = `UPDATE soft_skill SET skill_name = ?, skill_type= ? WHERE resume_id = ?`;
+      const sql = `UPDATE skill SET skill_name = ?, skill_type= ? WHERE skill_id = ?`;
       const [rows]: any = await pool.query(sql, [
         skill_name,
         skill_type,
-        resume_id,
+        skill_id,
       ]);
       return {
         message: "addSkill history added successfully",
@@ -216,13 +216,13 @@ export const ResumeController = {
 
   addSoftSkill: async (ctx: any) => {
     try {
-      const resume_id = ctx.params.resume_id;
+      const soft_skill_id = ctx.params.soft_kill_id;
       const { soft_skill_name, soft_skill_description } = ctx.body;
-      const sql = `UPDATE soft_skill SET soft_skill_name = ?, soft_skill_description = ? WHERE resume_id = ?`;
+      const sql = `UPDATE soft_skill SET soft_skill_name = ?, soft_skill_description = ? WHERE soft_skill_id = ?`;
       const [rows]: any = await pool.query(sql, [
         soft_skill_name,
         soft_skill_description,
-        resume_id,
+        soft_skill_id,
       ]);
       return {
         message: "addSoftSkill history added successfully",
@@ -237,7 +237,7 @@ export const ResumeController = {
 
   addEducationHistory: async (ctx: any) => {
     try {
-      const resume_id = ctx.params.resume_id;
+      const education_history_id = ctx.params.education_history_id;
       const {
         education_history_institution,
         education_history_major,
@@ -253,7 +253,7 @@ export const ResumeController = {
         education_history_start_year = ?,
         education_history_gpa = ?,
         education_history_notes = ?
-      WHERE resume_id = ?
+      WHERE education_history_id = ?
     `;
 
       const [rows]: any = await pool.query(sql, [
@@ -262,7 +262,7 @@ export const ResumeController = {
         education_history_start_year,
         education_history_gpa,
         education_history_notes,
-        resume_id,
+        education_history_id,
       ]);
 
       return {
@@ -279,7 +279,7 @@ export const ResumeController = {
 
   addWorkExperience: async (ctx: any) => {
     try {
-      const resume_id = ctx.params.resume_id;
+      const work_experience_id = ctx.params.work_experience_id;
       const {
         work_experience_company_name,
         work_experience_position,
@@ -297,7 +297,7 @@ export const ResumeController = {
         work_experience_end_date = ?,
         work_experience_description = ?,
         work_experience_highlight = ?
-      WHERE resume_id = ?
+      WHERE work_experience_id = ?
     `;
 
       const [rows]: any = await pool.query(sql, [
@@ -307,7 +307,7 @@ export const ResumeController = {
         work_experience_end_date,
         work_experience_description,
         work_experience_highlight,
-        resume_id,
+        work_experience_id,
       ]);
 
       return {
@@ -324,7 +324,7 @@ export const ResumeController = {
 
   addinternship: async (ctx: any) => {
     try {
-      const resume_id = ctx.params.resume_id;
+      const internship_id = ctx.params.internship_id;
       const {
         internship_company_name,
         internship_position,
@@ -342,7 +342,7 @@ export const ResumeController = {
                       internship_end_date = ?,
                       internship_description = ?,
                       internship_related_files = ?
-                    WHERE resume_id = ?
+                    WHERE internship_id = ?
                   `;
 
       const [rows]: any = await pool.query(sql, [
@@ -352,7 +352,7 @@ export const ResumeController = {
         internship_end_date,
         internship_description,
         internship_related_files,
-        resume_id,
+        internship_id,
       ]);
 
       return {
@@ -369,7 +369,7 @@ export const ResumeController = {
 
   addproject: async (ctx: any) => {
     try {
-      const resume_id = ctx.params.resume_id;
+      const project_id = ctx.params.project_id;
       const {
         project_name,
         project_technology_used,
@@ -385,7 +385,7 @@ export const ResumeController = {
                       project_description = ?,
                       project_impact = ?,
                       project_attachment_link = ?
-                    WHERE resume_id = ?
+                    WHERE project_id = ?
                   `;
 
       const [rows]: any = await pool.query(sql, [
@@ -394,7 +394,7 @@ export const ResumeController = {
         project_description,
         project_impact,
         project_attachment_link,
-        resume_id,
+        project_id,
       ]);
 
       return {
@@ -411,7 +411,7 @@ export const ResumeController = {
 
   addTraning: async (ctx: any) => {
     try {
-      const resume_id = ctx.params.resume_id;
+      const training_id = ctx.params.training_id;
       const {
         training_history_course_name,
         training_history_organization,
@@ -427,7 +427,7 @@ export const ResumeController = {
                       training_history_location = ?,
                       training_history_date = ?,
                       training_history_certificate_file = ?
-                    WHERE resume_id = ?
+                    WHERE training_id = ?
                   `;
 
       const [rows]: any = await pool.query(sql, [
@@ -436,7 +436,7 @@ export const ResumeController = {
         training_history_location,
         training_history_date,
         training_history_certificate_file,
-        resume_id,
+        training_id,
       ]);
 
       return {

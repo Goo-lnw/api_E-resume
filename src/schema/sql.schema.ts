@@ -65,9 +65,15 @@ export const addTraningSchema = t.Object({
   training_history_certificate_file: t.Union([t.String(), t.Null()]),
 });
 
-export const addSkillSchema = t.Object({
+export const addSoftSkillSchema = t.Object({
   soft_skill_name: t.Union([t.String(), t.Null()]),
   soft_skill_description: t.Union([t.String(), t.Null()]),
+});
+
+export const addSkillSchema = t.Object({
+  skill_name: t.Union([t.String(), t.Null()]),
+  skill_type: t.Union([t.String(), t.Null()]),
+  skill_proficiency: t.Union([t.String(), t.Null()]),
 });
 
 export const addEducationHistorySchema = t.Object({
