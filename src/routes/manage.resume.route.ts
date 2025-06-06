@@ -31,5 +31,17 @@ export const manageResumeRoutes = (app: Elysia) =>
       .put("/:resume_id/training", ResumeController.addTraning, {
         body: addTraningSchema,
       })
-      .put("/:resume_id/edit", ResumeController.editResume)
+      .put("/:resume_id/edit", ResumeController.previewResume
+      )
+      .post("/:resume_id/addSkill", ResumeController.addSkill)
+
+      .post("/education", ResumeController.increaseEducationHistory)
+      .post("/increaseSoftSkill", ResumeController.increaseSoftSkill)
+      .post("/increaseExperience", ResumeController.increaseExperience)
+      .post("/increaseInternship", ResumeController.increaseInternship)
+      .post("/increaseProject", ResumeController.increaseProject)
+      .post("/increaseTraning", ResumeController.increaseTraning)
+      .post("/increaseAdditional", ResumeController.increaseAdditional)
+      .post("/increaseSkill", ResumeController.increaseSkill)
+
   );

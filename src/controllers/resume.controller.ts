@@ -193,6 +193,27 @@ export const ResumeController = {
     }
   },
 
+  addSkill: async (ctx: any) => {
+    try {
+      const resume_id = ctx.params.resume_id;
+      const { skill_name, skill_type } = ctx.body;
+      const sql = `UPDATE soft_skill SET skill_name = ?, skill_type= ? WHERE resume_id = ?`;
+      const [rows]: any = await pool.query(sql, [
+        skill_name,
+        skill_type,
+        resume_id,
+      ]);
+      return {
+        message: "addSkill history added successfully",
+        success: true,
+        status: 200,
+        insertId: rows.insertId,
+      };
+    } catch (err) {
+      console.log(err);
+    }
+  },
+
   addSoftSkill: async (ctx: any) => {
     try {
       const resume_id = ctx.params.resume_id;
@@ -204,7 +225,7 @@ export const ResumeController = {
         resume_id,
       ]);
       return {
-        message: "Education history added successfully",
+        message: "addSoftSkill history added successfully",
         success: true,
         status: 200,
         insertId: rows.insertId,
@@ -430,7 +451,7 @@ export const ResumeController = {
     }
   },
 
-  editResume: async (ctx: any) => {
+  previewResume: async (ctx: any) => {
     try {
       const ctxBody = ctx.body;
       const resume_id = parseInt(ctx.params.resume_id);
@@ -496,5 +517,101 @@ export const ResumeController = {
       throw err;
     }
   },
+
+
+
+
+  // adding 
+  increaseSoftSkill: async (ctx: any) => {
+    const resume_id = ctx.user.resume_id;
+    try {
+      const sql = "INSERT INTO soft_skill (resume_id) VALUES (?)"
+      await pool.query(sql, [resume_id])
+      return { message: "success", status: 201 }
+    } catch (err) {
+      console.log(err);
+    }
+  },
+
+  increaseEducationHistory: async (ctx: any) => {
+    try {
+      const resume_id = ctx.user.resume_id;
+      console.log(ctx);
+      const sql = "INSERT INTO education_history (resume_id) VALUES (?)"
+      await pool.query(sql, [resume_id])
+      return { message: "success", status: 201 }
+    } catch (err) {
+      console.log(err);
+    }
+  },
+
+
+  increaseExperience: async (ctx: any) => {
+    try {
+      const resume_id = ctx.user.resume_id;
+      const sql = "INSERT INTO work_experience (resume_id) VALUES (?)"
+      await pool.query(sql, [resume_id])
+      return { message: "success", status: 201 }
+    } catch (err) {
+      console.log(err);
+    }
+  },
+
+
+  increaseInternship: async (ctx: any) => {
+    try {
+      const resume_id = ctx.user.resume_id;
+      const sql = "INSERT INTO internship (resume_id) VALUES (?)"
+      await pool.query(sql, [resume_id])
+      return { message: "success", status: 201 }
+    } catch (err) {
+      console.log(err);
+    }
+  },
+
+  increaseProject: async (ctx: any) => {
+    try {
+      const resume_id = ctx.user.resume_id;
+      const sql = "INSERT INTO project (resume_id) VALUES (?)"
+      await pool.query(sql, [resume_id])
+      return { message: "success", status: 201 }
+    } catch (err) {
+      console.log(err);
+    }
+  },
+
+  increaseTraning: async (ctx: any) => {
+    try {
+      const resume_id = ctx.user.resume_id;
+      const sql = "INSERT INTO training_history (resume_id) VALUES (?)"
+      await pool.query(sql, [resume_id])
+      return { message: "success", status: 201 }
+    } catch (err) {
+      console.log(err);
+    }
+  },
+
+  increaseAdditional: async (ctx: any) => {
+    try {
+      const resume_id = ctx.user.resume_id;
+      const sql = "INSERT INTO additional_info (resume_id) VALUES (?)"
+      await pool.query(sql, [resume_id])
+      return { message: "success", status: 201 }
+    } catch (err) {
+      console.log(err);
+    }
+  },
+
+  increaseSkill: async (ctx: any) => {
+    try {
+      const resume_id = ctx.user.resume_id;
+      const sql = "INSERT INTO skill (resume_id) VALUES (?)"
+      await pool.query(sql, [resume_id])
+      return { message: "success", status: 201 }
+    } catch (err) {
+      console.log(err);
+    }
+  },
+
 
 };

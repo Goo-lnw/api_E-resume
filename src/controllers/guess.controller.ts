@@ -17,12 +17,15 @@ export const guessController = {
         set.status = 401;
         return { message: "Invalid credentials" };
       }
+      console.log(users);
+
 
       const token = await jwt.sign({
         email: users.member_email,
         role: users.role,
         isAdmin: users.isAdmin,
         userId: users.id,
+        resume_id: users.resume_id
       });
 
       auth.value = {

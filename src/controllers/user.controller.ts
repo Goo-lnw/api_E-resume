@@ -1,8 +1,6 @@
 import pool from "../utils/db";
 
 
-import pool from "../utils/db";
-
 export const UserController = {
   getStudentSession: async (ctx: any) => {
     const auth_id = ctx.user.userId;
@@ -36,7 +34,7 @@ export const UserController = {
                     LEFT JOIN soft_skill ON resume.resume_id = soft_skill.resume_id
                     LEFT JOIN project ON resume.resume_id = project.resume_id 
                     WHERE resume.student_id = ?`;
-      
+
       const [rows]: any = await pool.query(sql, [auth_id]);
 
       if (!rows || rows.length === 0) return null;

@@ -11,9 +11,26 @@ const getUserByEmail = async (email: string) => {
   }
 
   const [studentRows]: any = await pool.query(
-    "SELECT student_name as name,  student_email as email, student_password as password, student_id as id, 'student' as role FROM student WHERE student_email = ?",
-    [email]
-  );
+    `SELECT
+        student_name AS name, 
+        student_email AS email, 
+        student.student_id AS id, 
+        'student' AS role, 
+        resume.resume_id, 
+        student.student_email, 
+        student.student_name, 
+        student.student_main_id,
+        student.student_password AS password
+      FROM
+        student
+        JOIN
+        resume
+        ON 
+          resume.student_id = student.student_id
+      WHERE
+        student_email =?`,
+          [email]
+        );
 
   if (studentRows.length > 0) {
     return studentRows[0];
