@@ -9,6 +9,7 @@ export const guessRoutes = (app: Elysia) =>
     })
     .post("/login", guessController.loginController, {
       body: LoginSchema,
-    });
+    })
+    .post("/logout", guessController.logoutController)
 
 export default guessRoutes;
