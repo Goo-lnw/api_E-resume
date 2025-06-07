@@ -186,4 +186,106 @@ export const studentController = {
       status: 200,
     };
   },
+
+  editStudent: async (ctx: any) => {
+    try {
+      const userId: number = parseInt(ctx.user.userId);
+      const data = ctx.body;
+      const userEntry = z.object({
+        student_main_id: z.string().optional().nullable(),
+        student_name: z.string().optional().nullable(),
+        student_name_thai: z.string().optional().nullable(),
+        student_email: z.string().email().optional().nullable(),
+        student_phone: z.string().min(10).max(15).optional().nullable(),
+        student_profile_image: z.string().url().optional().nullable(),
+        graduation_gown: z.string().url().optional().nullable(),
+        suit: z.string().url().optional().nullable(),
+        religion: z.string().optional().nullable(),
+        nationality: z.string().optional().nullable(),
+        date_of_birth: z.string().optional().nullable(),
+        ethnicity: z.string().optional().nullable(),
+        hobby: z.string().optional().nullable(),
+        weight: z.number().optional().nullable(),
+        height: z.number().optional().nullable(),
+        address: z.string().optional().nullable(),
+        facebook: z.string().optional().nullable(),
+        line: z.string().optional().nullable(),
+        github: z.string().optional().nullable(),
+        position: z.string().optional().nullable(),
+        student_old_password: z.string().min(8).optional().nullable(),
+        student_password: z.string().min(8).optional().nullable(),
+      });
+
+      const ValidatedEntry: any = userEntry.safeParse(data);
+
+      if (!ValidatedEntry.success) {
+        for (const issue of ValidatedEntry.error.issues) {
+          console.error(`Validation failed: ${issue.path} ${issue.message}\n`);
+        }
+        throw "Validation failed";
+      }
+
+      const ValidatedEntryData: any = ValidatedEntry.data;
+
+      if (
+        ValidatedEntryData.student_old_password !== undefined &&
+        ValidatedEntryData.student_password !== undefined
+      ) {
+        const oldUserData = await studentController.getStudentById(ctx);
+        const oldPass = oldUserData.data.student_password;
+        const oldPassEntry = ctx.body.student_old_password;
+        const passCompare = await Bun.password.verify(oldPassEntry, oldPass);
+        if (!passCompare) {
+          throw "old password wrong reentry and try again";
+        }
+        // if contain password hash pass
+        const hashedPassword = await Bun.password.hash(
+          ValidatedEntryData.student_password
+        );
+        ValidatedEntryData["student_password"] = hashedPassword;
+        delete ValidatedEntryData.student_old_password;
+      } else if (
+        ValidatedEntryData.student_old_password === undefined &&
+        ValidatedEntryData.student_password !== undefined
+      ) {
+        throw new Error("Please enter your old password and try again");
+      } else if (
+        ValidatedEntryData.student_old_password !== undefined &&
+        ValidatedEntryData.student_password === undefined
+      ) {
+        throw new Error("please entry your new password and try again");
+      } else {
+      }
+
+      const sql = `UPDATE student SET ? WHERE student_id = ?`;
+      const [result]: any = await pool.query(sql, [ValidatedEntryData, userId]);
+
+      if (result.affectedRows == 0) {
+        return {
+          status: 404,
+          success: false,
+          message: "user id didn't found",
+        };
+      }
+
+      if (result.changedRows == 0) {
+        throw "No data changed";
+      }
+
+      return {
+        status: 200,
+        success: true,
+        message: "User edited successfully",
+        data: result,
+      };
+    } catch (error: any) {
+      console.error("Unexpected error: ", error);
+      return {
+        status: 500,
+        success: false,
+        message: "Unexpected error",
+        detail: error,
+      };
+    }
+  },
 };
