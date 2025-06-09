@@ -5,17 +5,19 @@ import { teacherRoutes } from "./teacher.route";
 import { notificationRoute } from "./notification.route";
 import { authMiddleware } from "../middlewares/auth.middleware";
 import guessRoutes from "./guess.route";
+import { imageRoute } from "./image.route";
 
 const routes = new Elysia();
 
 routes.group("/api", (app) =>
-  app
-    .use(guessRoutes)
-    .use(authMiddleware)
-    .use(notificationRoute)
-    .use(manageResumeRoutes)
-    .use(studentRoutes)
-    .use(teacherRoutes)
+    app
+        .use(guessRoutes)
+        .use(imageRoute)
+        .use(authMiddleware)
+        .use(notificationRoute)
+        .use(manageResumeRoutes)
+        .use(studentRoutes)
+        .use(teacherRoutes)
 );
 
 export default routes;

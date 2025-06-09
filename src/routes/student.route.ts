@@ -3,20 +3,22 @@ import { bodyCreateStudent } from "../schema/sql.schema";
 import { studentController } from "../controllers/student.controller";
 import { UserController } from "../controllers/user.controller";
 export const studentRoutes = (app: Elysia) =>
-  app.group("/student", (app) =>
-    app
-      .get("", studentController.getStudents)
-      .get("/:student_id", studentController.getStudentById)
-      .delete("/:student_id/delete", studentController.deleteStudentController)
-      .put("/:student_id/edit", studentController.editStudentController)
-      .post("", studentController.createStudent, {
-        body: bodyCreateStudent,
-      })
+    app.group("/student", (app) =>
+        app
+            .get("", studentController.getStudents)
+            .get("/:student_id", studentController.getStudentById)
+            .delete(
+                "/:student_id/delete",
+                studentController.deleteStudentController
+            )
+            .put("/:student_id/edit", studentController.editStudentController)
+            .post("", studentController.createStudent, {
+                body: bodyCreateStudent,
+            })
 
-      .put("/editStudent", studentController.editStudent)
-
-      .get("/protected", UserController.getStudentSession)
-      .get("/skill", UserController.getSkill)
-      .get("/softSkill", UserController.getSoftSkill)
-      .get("/education", UserController.getEducation)
-  );
+            .put("/editStudent", studentController.editStudent)
+            .get("/protected", UserController.getStudentSession)
+            .get("/skill", UserController.getSkill)
+            .get("/softSkill", UserController.getSoftSkill)
+            .get("/education", UserController.getEducation)
+    );
