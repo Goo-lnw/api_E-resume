@@ -103,4 +103,16 @@ export const guessController = {
       throw err;
     }
   },
+
+  logoutController: async ({ set, cookie: { auth } }: any) => {
+    try {
+      // Clear the auth cookie
+      auth.remove();
+      set.status = 200;
+      return { message: "Logout successful" };
+    } catch (error) {
+      set.status = 500;
+      return { error: "Logout failed" };
+    }
+  },
 };
