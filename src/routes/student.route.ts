@@ -7,16 +7,13 @@ export const studentRoutes = (app: Elysia) =>
         app
             .get("", studentController.getStudents)
             .get("/:student_id", studentController.getStudentById)
-            .delete(
-                "/:student_id/delete",
-                studentController.deleteStudentController
-            )
-            .put("/:student_id/edit", studentController.editStudentController)
-            .post("", studentController.createStudent, {
-                body: bodyCreateStudent,
-            })
 
-            .put("/editStudent", studentController.editStudent)
+            .post("", studentController.createStudent, { body: bodyCreateStudent })
+            .put("/:student_id/edit", studentController.editStudentController)
+            .delete("/:student_id/delete", studentController.deleteStudentController)
+
+            .put("/edit_profile", studentController.editProfile)
+
             .get("/protected", UserController.getStudentSession)
             .get("/skill", UserController.getSkill)
             .get("/softSkill", UserController.getSoftSkill)
