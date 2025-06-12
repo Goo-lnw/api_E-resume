@@ -44,4 +44,4 @@ package-lock.json
 
 .vscode
 .prettierrc
-/public/uploads/*
+# /public/uploads/*
