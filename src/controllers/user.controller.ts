@@ -1,4 +1,7 @@
 import pool from "../utils/db";
+import { z } from "zod/v4";
+import { writeFile } from "fs/promises";
+import { join } from "path";
 
 export const UserController = {
     getStudentSession: async (ctx: any) => {
@@ -176,6 +179,116 @@ export const UserController = {
             throw err;
         }
     },
+    editProfile: async (ctx: any) => {
+        try {
+            // console.log(
+            //     JSON.stringify({
+            //         student_name: "Pattarasawan Sritad",
+            //         student_name_thai: "ภัทรสวันต์ ศรีทัด",
+            //         student_email: "680112418037@bru.ac.th",
+            //         student_phone: "0816047264",
+            //         student_profile_image: "http://localhost:8000/uploads/1749534318679_4042171.png",
+            //         graduation_gown: "http://localhost:8000/uploads/1749534318682_4086679.png",
+            //         suit: "http://localhost:8000/uploads/1749534318683_7084424.png",
+            //         religion: null,
+            //         nationality: null,
+            //         date_of_birth: "1999-04-28 00:00:00",
+            //         ethnicity: null,
+            //         hobby: null,
+            //         weight: null,
+            //         height: null,
+            //         address: null,
+            //         facebook: null,
+            //         line: null,
+            //         github: null,
+            //         position: null,
+            //     })
+            // );
+            const userId = ctx.user.userId;
+            const parsedFormData = await ctx.request.formData();
+
+            // prepare upload image
+            const publicUploadPath = join(process.cwd(), "public", "uploads");
+            const allowedTypes = ["image/jpeg", "image/png"];
+            const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+            const uploaded: any = {};
+            let studentProfileData: any = {};
+            for (const [key, data] of parsedFormData) {
+                if (data instanceof File) {
+                    const { name, type, size } = data;
+                    if (!name || !type) continue;
+                    if (size > MAX_FILE_SIZE) {
+                        throw `File ${name} exceeds max size of 5MB`;
+                    }
+                    if (!allowedTypes.includes(type)) {
+                        throw `File type ${type} not allowed. Allowed: ${allowedTypes.join(", ")}`;
+                    }
+                    const arrayBuffer = await data.arrayBuffer();
+                    const buffer = Buffer.from(arrayBuffer);
+                    const uniqueFilename = `${Date.now()}_${name}`;
+                    await writeFile(join(publicUploadPath, uniqueFilename), buffer);
+
+                    uploaded[key] = `${process.env.API_SERVER_DOMAIN}/uploads/${uniqueFilename}`;
+                }
+                if (typeof data === "string") {
+                    studentProfileData = JSON.parse(data);
+                }
+            }
+            // merge image name to uploaded
+            studentProfileData = Object.assign(studentProfileData, uploaded);
+
+            const ProfileDataSchema = z.object({
+                student_main_id: z.string().optional().nullable(),
+                student_name: z.string().optional().nullable(),
+                student_name_thai: z.string().optional().nullable(),
+                student_email: z.string().email().optional().nullable(),
+                student_phone: z.string().min(10).max(15).optional().nullable(),
+                student_profile_image: z.string().optional().nullable(),
+                graduation_gown: z.string().optional().nullable(),
+                suit: z.string().optional().nullable(),
+                religion: z.string().optional().nullable(),
+                nationality: z.string().optional().nullable(),
+                date_of_birth: z.string().optional().nullable(),
+                ethnicity: z.string().optional().nullable(),
+                hobby: z.string().optional().nullable(),
+                weight: z.number().optional().nullable(),
+                height: z.number().optional().nullable(),
+                address: z.string().optional().nullable(),
+                facebook: z.string().optional().nullable(),
+                line: z.string().optional().nullable(),
+                github: z.string().optional().nullable(),
+                position: z.string().optional().nullable(),
+                student_old_password: z.string().min(8).optional().nullable(),
+                student_password: z.string().min(8).optional().nullable(),
+            });
+            const Validated: any = ProfileDataSchema.safeParse(studentProfileData);
+            if (!Validated.success) {
+                for (const issue of Validated.error.issues) {
+                    console.error(`Validation failed: ${issue.path} ${issue.message}\n`);
+                }
+                throw "Validation failed";
+            }
+            studentProfileData = Validated.data;
+
+            const sql = `UPDATE student SET ? WHERE student_id = ?`;
+            const [result]: any = await pool.query(sql, [studentProfileData, userId]);
+            return {
+                status: 201,
+                success: true,
+                message: "Profile edited successfully",
+                imagesData: uploaded,
+                result: result[0],
+            };
+        } catch (error) {
+            console.error("Unexpected error: ", error);
+            return {
+                status: 500,
+                success: false,
+                message: "Unexpected error",
+                detail: error,
+            };
+        }
+    },
     getSkill: async (ctx: any) => {
         const auth_id = ctx.user.userId;
         try {
@@ -208,7 +321,7 @@ export const UserController = {
             throw err;
         }
     },
-    getEducation: async (ctx: any) => {
+    getEducationHistory: async (ctx: any) => {
         const auth_id = ctx.user.userId;
         try {
             const sql = `
@@ -224,52 +337,80 @@ export const UserController = {
             throw err;
         }
     },
-    deleteSkill: async (ctx: any) => {
-        const skill_id = ctx.params.skill_id;
+    getProject: async (ctx: any) => {
+        const auth_id = ctx.user.userId;
         try {
             const sql = `
-                  DELETE FROM skill WHERE skill_id = ?
+                  SELECT project.* FROM project 
+                  JOIN resume on project.resume_id = resume.resume_id 
+                  JOIN student on student.student_id = resume.student_id 
+                  WHERE student.student_id = ?
       `;
-            const [rows]: any = await pool.query(sql, [skill_id]);
+            const [rows]: any = await pool.query(sql, [auth_id]);
             return rows;
         } catch (err) {
             console.log(err);
             throw err;
         }
     },
-    deleteSoftSkill: async (ctx: any) => {
-        const soft_skill_id = ctx.params.soft_skill_id;
+    getWorkExperience: async (ctx: any) => {
+        const auth_id = ctx.user.userId;
         try {
             const sql = `
-                  DELETE FROM soft_skill WHERE soft_skill_id = ?
+                  SELECT work_experience.* FROM work_experience 
+                  JOIN resume on work_experience.resume_id = resume.resume_id 
+                  JOIN student on student.student_id = resume.student_id 
+                  WHERE student.student_id = ?
       `;
-            const [rows]: any = await pool.query(sql, [soft_skill_id]);
+            const [rows]: any = await pool.query(sql, [auth_id]);
             return rows;
         } catch (err) {
             console.log(err);
             throw err;
         }
     },
-    deleteEducation: async (ctx: any) => {
-        const education_history_id = ctx.params.education_history_id;
+    getInternship: async (ctx: any) => {
+        const auth_id = ctx.user.userId;
         try {
             const sql = `
-                  DELETE FROM education_history WHERE education_history_id = ?
+                  SELECT internship.* FROM internship 
+                  JOIN resume on internship.resume_id = resume.resume_id 
+                  JOIN student on student.student_id = resume.student_id 
+                  WHERE student.student_id = ?
       `;
-            const [rows]: any = await pool.query(sql, [education_history_id]);
+            const [rows]: any = await pool.query(sql, [auth_id]);
             return rows;
         } catch (err) {
             console.log(err);
             throw err;
         }
     },
-    deleteProject: async (ctx: any) => {
-        const project_id = ctx.params.project_id;
+    getTraining: async (ctx: any) => {
+        const auth_id = ctx.user.userId;
         try {
             const sql = `
-                  DELETE FROM project WHERE project_id = ?
+                  SELECT training.* FROM training 
+                  JOIN resume on training.resume_id = resume.resume_id 
+                  JOIN student on student.student_id = resume.student_id 
+                  WHERE student.student_id = ?
       `;
-            const [rows]: any = await pool.query(sql, [project_id]);
+            const [rows]: any = await pool.query(sql, [auth_id]);
+            return rows;
+        } catch (err) {
+            console.log(err);
+            throw err;
+        }
+    },
+    getAdditionalInfo: async (ctx: any) => {
+        const auth_id = ctx.user.userId;
+        try {
+            const sql = `
+                  SELECT additional_info.* FROM additional_info 
+                  JOIN resume on additional_info.resume_id = resume.resume_id 
+                  JOIN student on student.student_id = resume.student_id 
+                  WHERE student.student_id = ?
+      `;
+            const [rows]: any = await pool.query(sql, [auth_id]);
             return rows;
         } catch (err) {
             console.log(err);
