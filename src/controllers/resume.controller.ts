@@ -783,7 +783,7 @@ export const ResumeController = {
             // console.log(additionalInfoData);
 
             const sql = `
-                  UPDATE additional_info_history SET
+                  UPDATE additional_info SET
                       ?
                     WHERE additional_info_id = ?
                   `;
