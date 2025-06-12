@@ -51,7 +51,7 @@ export const manageResumeRoutes = (app: Elysia) =>
             .put("/internship/:internship_id", ResumeController.saveinternship, {
                 body: addinternshipSchema,
             })
-            .delete("/internship/:internship_id", ResumeController.deleteProject)
+            .delete("/internship/:internship_id", ResumeController.deleteInternship)
 
             .post("/increase_training", ResumeController.increaseTraning)
             .put("/training/:training_id", ResumeController.saveTraning, {
