@@ -740,7 +740,9 @@ export const ResumeController = {
     // need to use upload file ⬇️
     saveAdditionalInfo: async (ctx: any) => {
         try {
-            const parsedFormData = await ctx.request.formData();
+            const body = await ctx.request.json()
+
+            const parsedFormData = body;
             const additionalInfoId = ctx.params.additional_info_id;
             // console.log(
             //     JSON.stringify({
@@ -783,8 +785,7 @@ export const ResumeController = {
             // console.log(additionalInfoData);
 
             const sql = `
-                  UPDATE additional_info SET
-                      ?
+                  UPDATE additional_info SET ?
                     WHERE additional_info_id = ?
                   `;
 
