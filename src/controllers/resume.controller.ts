@@ -5,9 +5,9 @@ import { writeFile } from "fs/promises";
 import { join } from "path";
 
 export const ResumeController = {
-    getResume: async (ctx: any) => {
-        try {
-            const sql = `SELECT
+  getResume: async (ctx: any) => {
+    try {
+      const sql = `SELECT
                   additional_info.*, 
                   education_history.*,
                   internship.*,
@@ -37,140 +37,158 @@ export const ResumeController = {
                   LEFT JOIN project ON resume.resume_id = project.resume_id 
                 WHERE resume.resume_status = "submitted"`;
 
-            const [rows]: any = await pool.query(sql);
+      const [rows]: any = await pool.query(sql);
 
-            if (!rows || rows.length === 0) return [];
+      if (!rows || rows.length === 0) return [];
 
-            const groupBy = (arr: any[], keys: string[]) => {
-                const map = new Map();
-                for (const row of arr) {
-                    const key = keys.map((k) => row[k]).join("|");
-                    if (!map.has(key)) map.set(key, []);
-                    map.get(key).push(row);
-                }
-                return map;
-            };
-
-            const grouped = groupBy(rows, ["student_id", "resume_id"]);
-
-            const results: any[] = [];
-
-            for (const [[student_id, resume_id], groupRows] of grouped.entries()) {
-                const first = groupRows[0];
-
-                const groupByUnique = (keyFields: string[], data: any[]) => {
-                    const seen = new Set();
-                    return data.filter((item) => {
-                        const key = keyFields.map((k) => item[k]).join("|");
-                        if (seen.has(key)) return false;
-                        seen.add(key);
-                        return true;
-                    });
-                };
-
-                const student = {
-                    student_id: first.student_id,
-                    student_name: first.student_name,
-                    student_main_id: first.student_main_id,
-                    student_email: first.student_email,
-                    student_phone: first.student_phone,
-                    student_profile_image: first.student_profile_image,
-                };
-
-                const resume = {
-                    resume_id: first.resume_id,
-                    student_id: first.student_id,
-                    teacher_id: first.teacher_id,
-                    resume_status: first.resume_status,
-                    resume_teacher_comment: first.resume_teacher_comment,
-                    submitted_at: first.submitted_at,
-                    approved_at: first.approved_at,
-                };
-
-                const skills = groupByUnique(["skill_id"], groupRows).map((row) => ({
-                    skill_name: row.skill_name,
-                    skill_type: row.skill_type,
-                    skill_proficiency: row.skill_proficiency,
-                }));
-
-                const projects = groupByUnique(["project_id"], groupRows).map((row) => ({
-                    project_name: row.project_name,
-                    project_technology_used: row.project_technology_used,
-                    project_description: row.project_description,
-                    project_impact: row.project_impact,
-                    project_attachment_link: row.project_attachment_link,
-                }));
-
-                const internships = groupByUnique(["internship_id"], groupRows).map((row) => ({
-                    internship_company_name: row.internship_company_name,
-                    internship_position: row.internship_position,
-                    internship_start_date: row.internship_start_date,
-                    internship_end_date: row.internship_end_date,
-                    internship_description: row.internship_description,
-                    internship_related_files: row.internship_related_files,
-                }));
-
-                const education = groupByUnique(["education_history_id"], groupRows).map((row) => ({
-                    education_history_institution: row.education_history_institution,
-                    education_history_major: row.education_history_major,
-                    education_history_start_year: row.education_history_start_year,
-                    education_history_gpa: row.education_history_gpa,
-                    education_history_notes: row.education_history_notes,
-                }));
-
-                const softSkills = groupByUnique(["soft_skill_id"], groupRows).map((row) => ({
-                    soft_skill_name: row.soft_skill_name,
-                    soft_skill_description: row.soft_skill_description,
-                }));
-
-                const training = groupByUnique(["training_history_id"], groupRows).map((row) => ({
-                    training_history_course_name: row.training_history_course_name,
-                    training_history_organization: row.training_history_organization,
-                    training_history_location: row.training_history_location,
-                    training_history_date: row.training_history_date,
-                    training_history_certificate_file: row.training_history_certificate_file,
-                }));
-
-                const workExperience = groupByUnique(["work_experience_id"], groupRows).map((row) => ({
-                    work_experience_company_name: row.work_experience_company_name,
-                    work_experience_position: row.work_experience_position,
-                    work_experience_start_date: row.work_experience_start_date,
-                    work_experience_end_date: row.work_experience_end_date,
-                    work_experience_description: row.work_experience_description,
-                    work_experience_highlight: row.work_experience_highlight,
-                }));
-
-                const additionalInfo = groupByUnique(["additional_info_id"], groupRows).map((row) => ({
-                    additional_info_title: row.additional_info_title,
-                    additional_info_description: row.additional_info_description,
-                    additional_info_file_attachment: row.additional_info_file_attachment,
-                }));
-
-                results.push({
-                    student,
-                    resume,
-                    skills,
-                    projects,
-                    internships,
-                    education,
-                    softSkills,
-                    training,
-                    workExperience,
-                    additionalInfo,
-                });
-            }
-
-            return results;
-        } catch (err) {
-            console.log(err);
-            throw err;
+      const groupBy = (arr: any[], keys: string[]) => {
+        const map = new Map();
+        for (const row of arr) {
+          const key = keys.map((k) => row[k]).join("|");
+          if (!map.has(key)) map.set(key, []);
+          map.get(key).push(row);
         }
-    },
+        return map;
+      };
 
-    getResumeById: async (ctx: any) => {
-        const auth_id = ctx.params.resume_id;
-        try {
-            const sql = `SELECT
+      const grouped = groupBy(rows, ["student_id", "resume_id"]);
+
+      const results: any[] = [];
+
+      for (const [[student_id, resume_id], groupRows] of grouped.entries()) {
+        const first = groupRows[0];
+
+        const groupByUnique = (keyFields: string[], data: any[]) => {
+          const seen = new Set();
+          return data.filter((item) => {
+            const key = keyFields.map((k) => item[k]).join("|");
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+          });
+        };
+
+        const student = {
+          student_id: first.student_id,
+          student_name: first.student_name,
+          student_main_id: first.student_main_id,
+          student_email: first.student_email,
+          student_phone: first.student_phone,
+          student_profile_image: first.student_profile_image,
+        };
+
+        const resume = {
+          resume_id: first.resume_id,
+          student_id: first.student_id,
+          teacher_id: first.teacher_id,
+          resume_status: first.resume_status,
+          resume_teacher_comment: first.resume_teacher_comment,
+          submitted_at: first.submitted_at,
+          approved_at: first.approved_at,
+        };
+
+        const skills = groupByUnique(["skill_id"], groupRows).map((row) => ({
+          skill_name: row.skill_name,
+          skill_type: row.skill_type,
+          skill_proficiency: row.skill_proficiency,
+        }));
+
+        const projects = groupByUnique(["project_id"], groupRows).map(
+          (row) => ({
+            project_name: row.project_name,
+            project_technology_used: row.project_technology_used,
+            project_description: row.project_description,
+            project_impact: row.project_impact,
+            project_attachment_link: row.project_attachment_link,
+          })
+        );
+
+        const internships = groupByUnique(["internship_id"], groupRows).map(
+          (row) => ({
+            internship_company_name: row.internship_company_name,
+            internship_position: row.internship_position,
+            internship_start_date: row.internship_start_date,
+            internship_end_date: row.internship_end_date,
+            internship_description: row.internship_description,
+            internship_related_files: row.internship_related_files,
+          })
+        );
+
+        const education = groupByUnique(
+          ["education_history_id"],
+          groupRows
+        ).map((row) => ({
+          education_history_institution: row.education_history_institution,
+          education_history_major: row.education_history_major,
+          education_history_start_year: row.education_history_start_year,
+          education_history_gpa: row.education_history_gpa,
+          education_history_notes: row.education_history_notes,
+        }));
+
+        const softSkills = groupByUnique(["soft_skill_id"], groupRows).map(
+          (row) => ({
+            soft_skill_name: row.soft_skill_name,
+            soft_skill_description: row.soft_skill_description,
+          })
+        );
+
+        const training = groupByUnique(["training_history_id"], groupRows).map(
+          (row) => ({
+            training_history_course_name: row.training_history_course_name,
+            training_history_organization: row.training_history_organization,
+            training_history_location: row.training_history_location,
+            training_history_date: row.training_history_date,
+            training_history_certificate_file:
+              row.training_history_certificate_file,
+          })
+        );
+
+        const workExperience = groupByUnique(
+          ["work_experience_id"],
+          groupRows
+        ).map((row) => ({
+          work_experience_company_name: row.work_experience_company_name,
+          work_experience_position: row.work_experience_position,
+          work_experience_start_date: row.work_experience_start_date,
+          work_experience_end_date: row.work_experience_end_date,
+          work_experience_description: row.work_experience_description,
+          work_experience_highlight: row.work_experience_highlight,
+        }));
+
+        const additionalInfo = groupByUnique(
+          ["additional_info_id"],
+          groupRows
+        ).map((row) => ({
+          additional_info_title: row.additional_info_title,
+          additional_info_description: row.additional_info_description,
+          additional_info_file_attachment: row.additional_info_file_attachment,
+        }));
+
+        results.push({
+          student,
+          resume,
+          skills,
+          projects,
+          internships,
+          education,
+          softSkills,
+          training,
+          workExperience,
+          additionalInfo,
+        });
+      }
+
+      return results;
+    } catch (err) {
+      console.log(err);
+      throw err;
+    }
+  },
+
+  getResumeById: async (ctx: any) => {
+    const auth_id = ctx.params.resume_id;
+    try {
+      const sql = `SELECT
                     additional_info.*, 
                     education_history.*,
                     internship.*,
@@ -200,340 +218,367 @@ export const ResumeController = {
                     LEFT JOIN project ON resume.resume_id = project.resume_id 
                     WHERE resume.resume_id = ?`;
 
-            const [rows]: any = await pool.query(sql, [auth_id]);
+      const [rows]: any = await pool.query(sql, [auth_id]);
 
-            if (!rows || rows.length === 0) return null;
+      if (!rows || rows.length === 0) return null;
 
-            // Extract student & resume (singular)
-            const student = {
-                student_id: rows[0].student_id,
-                student_name: rows[0].student_name,
-                student_main_id: rows[0].student_main_id,
-                student_email: rows[0].student_email,
-                student_phone: rows[0].student_phone,
-                student_profile_image: rows[0].student_profile_image,
-            };
+      // Extract student & resume (singular)
+      const student = {
+        student_id: rows[0].student_id,
+        student_name: rows[0].student_name,
+        student_main_id: rows[0].student_main_id,
+        student_email: rows[0].student_email,
+        student_phone: rows[0].student_phone,
+        student_profile_image: rows[0].student_profile_image,
+      };
 
-            const resume = {
-                resume_id: rows[0].resume_id,
-                student_id: rows[0].student_id,
-                teacher_id: rows[0].teacher_id,
-                resume_status: rows[0].resume_status,
-                resume_teacher_comment: rows[0].resume_teacher_comment,
-                submitted_at: rows[0].submitted_at,
-                approved_at: rows[0].approved_at,
-            };
+      const resume = {
+        resume_id: rows[0].resume_id,
+        student_id: rows[0].student_id,
+        teacher_id: rows[0].teacher_id,
+        resume_status: rows[0].resume_status,
+        resume_teacher_comment: rows[0].resume_teacher_comment,
+        submitted_at: rows[0].submitted_at,
+        approved_at: rows[0].approved_at,
+      };
 
-            // Helper to group unique objects
-            const groupByUnique = (keyFields: string[], data: any[]) => {
-                const seen = new Set();
-                return data.filter((item) => {
-                    const key = keyFields.map((k) => item[k]).join("|");
-                    if (seen.has(key)) return false;
-                    seen.add(key);
-                    return true;
-                });
-            };
+      // Helper to group unique objects
+      const groupByUnique = (keyFields: string[], data: any[]) => {
+        const seen = new Set();
+        return data.filter((item) => {
+          const key = keyFields.map((k) => item[k]).join("|");
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+      };
 
-            // Grouped arrays
-            const skills = groupByUnique(["skill_id"], rows).map((row) => ({
-                skill_name: row.skill_name,
-                skill_type: row.skill_type,
-                skill_proficiency: row.skill_proficiency,
-            }));
+      // Grouped arrays
+      const skills = groupByUnique(["skill_id"], rows).map((row) => ({
+        skill_name: row.skill_name,
+        skill_type: row.skill_type,
+        skill_proficiency: row.skill_proficiency,
+      }));
 
-            const projects = groupByUnique(["project_id"], rows).map((row) => ({
-                project_name: row.project_name,
-                project_technology_used: row.project_technology_used,
-                project_description: row.project_description,
-                project_impact: row.project_impact,
-                project_attachment_link: row.project_attachment_link,
-            }));
+      const projects = groupByUnique(["project_id"], rows).map((row) => ({
+        project_name: row.project_name,
+        project_technology_used: row.project_technology_used,
+        project_description: row.project_description,
+        project_impact: row.project_impact,
+        project_attachment_link: row.project_attachment_link,
+      }));
 
-            const internships = groupByUnique(["internship_id"], rows).map((row) => ({
-                internship_company_name: row.internship_company_name,
-                internship_position: row.internship_position,
-                internship_start_date: row.internship_start_date,
-                internship_end_date: row.internship_end_date,
-                internship_description: row.internship_description,
-                internship_related_files: row.internship_related_files,
-            }));
+      const internships = groupByUnique(["internship_id"], rows).map((row) => ({
+        internship_company_name: row.internship_company_name,
+        internship_position: row.internship_position,
+        internship_start_date: row.internship_start_date,
+        internship_end_date: row.internship_end_date,
+        internship_description: row.internship_description,
+        internship_related_files: row.internship_related_files,
+      }));
 
-            const education = groupByUnique(["education_history_id"], rows).map((row) => ({
-                education_history_institution: row.education_history_institution,
-                education_history_major: row.education_history_major,
-                education_history_start_year: row.education_history_start_year,
-                education_history_gpa: row.education_history_gpa,
-                education_history_notes: row.education_history_notes,
-            }));
+      const education = groupByUnique(["education_history_id"], rows).map(
+        (row) => ({
+          education_history_institution: row.education_history_institution,
+          education_history_major: row.education_history_major,
+          education_history_start_year: row.education_history_start_year,
+          education_history_gpa: row.education_history_gpa,
+          education_history_notes: row.education_history_notes,
+        })
+      );
 
-            const softSkills = groupByUnique(["soft_skill_id"], rows).map((row) => ({
-                soft_skill_name: row.soft_skill_name,
-                soft_skill_description: row.soft_skill_description,
-            }));
+      const softSkills = groupByUnique(["soft_skill_id"], rows).map((row) => ({
+        soft_skill_name: row.soft_skill_name,
+        soft_skill_description: row.soft_skill_description,
+      }));
 
-            const training = groupByUnique(["training_history_id"], rows).map((row) => ({
-                training_history_course_name: row.training_history_course_name,
-                training_history_organization: row.training_history_organization,
-                training_history_location: row.training_history_location,
-                training_history_date: row.training_history_date,
-                training_history_certificate_file: row.training_history_certificate_file,
-            }));
+      const training = groupByUnique(["training_history_id"], rows).map(
+        (row) => ({
+          training_history_course_name: row.training_history_course_name,
+          training_history_organization: row.training_history_organization,
+          training_history_location: row.training_history_location,
+          training_history_date: row.training_history_date,
+          training_history_certificate_file:
+            row.training_history_certificate_file,
+        })
+      );
 
-            const workExperience = groupByUnique(["work_experience_id"], rows).map((row) => ({
-                work_experience_company_name: row.work_experience_company_name,
-                work_experience_position: row.work_experience_position,
-                work_experience_start_date: row.work_experience_start_date,
-                work_experience_end_date: row.work_experience_end_date,
-                work_experience_description: row.work_experience_description,
-                work_experience_highlight: row.work_experience_highlight,
-            }));
+      const workExperience = groupByUnique(["work_experience_id"], rows).map(
+        (row) => ({
+          work_experience_company_name: row.work_experience_company_name,
+          work_experience_position: row.work_experience_position,
+          work_experience_start_date: row.work_experience_start_date,
+          work_experience_end_date: row.work_experience_end_date,
+          work_experience_description: row.work_experience_description,
+          work_experience_highlight: row.work_experience_highlight,
+        })
+      );
 
-            const additionalInfo = groupByUnique(["additional_info_id"], rows).map((row) => ({
-                additional_info_title: row.additional_info_title,
-                additional_info_description: row.additional_info_description,
-                additional_info_file_attachment: row.additional_info_file_attachment,
-            }));
+      const additionalInfo = groupByUnique(["additional_info_id"], rows).map(
+        (row) => ({
+          additional_info_title: row.additional_info_title,
+          additional_info_description: row.additional_info_description,
+          additional_info_file_attachment: row.additional_info_file_attachment,
+        })
+      );
 
-            return {
-                student,
-                resume,
-                skills,
-                projects,
-                internships,
-                education,
-                softSkills,
-                training,
-                workExperience,
-                additionalInfo,
-            };
-        } catch (err) {
-            console.log(err);
-            throw err;
+      return {
+        student,
+        resume,
+        skills,
+        projects,
+        internships,
+        education,
+        softSkills,
+        training,
+        workExperience,
+        additionalInfo,
+      };
+    } catch (err) {
+      console.log(err);
+      throw err;
+    }
+  },
+
+  previewResume: async (ctx: any) => {
+    try {
+      const ctxBody = ctx.body;
+      const resume_id = parseInt(ctx.params.resume_id);
+      const DataSchema = z.object({
+        resume_id: z.number(),
+        resume_status: z.number().optional().nullable(),
+        teacher_id: z.number().optional().nullable(),
+        resume_teacher_comment: z.string().optional().nullable(),
+      });
+      const validatedData = DataSchema.safeParse({
+        resume_id: resume_id,
+        resume_status: ctxBody.resume_status,
+        teacher_id: ctx.user.userId,
+        resume_teacher_comment: ctxBody.resume_teacher_comment,
+      });
+      if (!validatedData.success) {
+        let err: any[] = [];
+        for (const issue of validatedData.error.issues) {
+          err.push(`${issue.path} : ${issue.message}`);
+          console.error(`Validation failed: ${issue.path} : ${issue.message}`);
         }
-    },
+        throw new Error("Valadition Fail", { cause: err });
+      }
+      // set dynamic UPDATE query SET
+      let set: {
+        resume_status?: number;
+        teacher_id?: number;
+        resume_teacher_comment?: string;
+      } = {};
+      if (validatedData.data.resume_status) {
+        set.resume_status = validatedData.data.resume_status;
+      }
+      if (validatedData.data.teacher_id) {
+        set.teacher_id = validatedData.data.teacher_id;
+      }
+      if (validatedData.data.resume_teacher_comment) {
+        set.resume_teacher_comment = validatedData.data.resume_teacher_comment;
+      }
+      //  update resume
+      const sql = "UPDATE resume SET ? WHERE resume_id = ? ";
+      const [result]: any = await pool.query(sql, [
+        set,
+        validatedData.data.resume_id,
+      ]);
+      if (result.affectedRows === 0) {
+        throw "UPDATE ERROR : Resume not found or wrong ID";
+      }
+      if (result.changedRows === 0) {
+        throw "UPDATE ERROR : Resume data didn't change";
+      }
+      //  update Notification ตาม resume status
+      if (
+        validatedData.data.resume_status &&
+        validatedData.data.resume_status === 3
+      ) {
+        let notificationSet = {
+          notification_message: "Resume ของคุณถูกอนุมัติแล้ว",
+          is_read: 1,
+        };
+        const sql = "UPDATE notification SET ? WHERE resume_id = ?";
+        const [notificationResult]: any = await pool.query(sql, [
+          notificationSet,
+          validatedData.data.resume_id,
+        ]);
+      }
+      if (
+        validatedData.data.resume_status &&
+        validatedData.data.resume_status === 4
+      ) {
+        let notificationSet = {
+          notification_message: "Resume ของคุณถูกปฎิเสธ กรุณาตรวจสอบ",
+          is_read: 1,
+        };
+        const sql = "UPDATE notification SET ? WHERE resume_id = ?";
+        const [notificationResult]: any = await pool.query(sql, [
+          notificationSet,
+          validatedData.data.resume_id,
+        ]);
+      }
 
-    previewResume: async (ctx: any) => {
-        try {
-            const ctxBody = ctx.body;
-            const resume_id = parseInt(ctx.params.resume_id);
-            const DataSchema = z.object({
-                resume_id: z.number(),
-                resume_status: z.number().optional().nullable(),
-                teacher_id: z.number().optional().nullable(),
-                resume_teacher_comment: z.string().optional().nullable(),
-            });
-            const validatedData = DataSchema.safeParse({
-                resume_id: resume_id,
-                resume_status: ctxBody.resume_status,
-                teacher_id: ctx.user.userId,
-                resume_teacher_comment: ctxBody.resume_teacher_comment,
-            });
-            if (!validatedData.success) {
-                let err: any[] = [];
-                for (const issue of validatedData.error.issues) {
-                    err.push(`${issue.path} : ${issue.message}`);
-                    console.error(`Validation failed: ${issue.path} : ${issue.message}`);
-                }
-                throw new Error("Valadition Fail", { cause: err });
-            }
-            // set dynamic UPDATE query SET
-            let set: {
-                resume_status?: number;
-                teacher_id?: number;
-                resume_teacher_comment?: string;
-            } = {};
-            if (validatedData.data.resume_status) {
-                set.resume_status = validatedData.data.resume_status;
-            }
-            if (validatedData.data.teacher_id) {
-                set.teacher_id = validatedData.data.teacher_id;
-            }
-            if (validatedData.data.resume_teacher_comment) {
-                set.resume_teacher_comment = validatedData.data.resume_teacher_comment;
-            }
-            //  update resume
-            const sql = "UPDATE resume SET ? WHERE resume_id = ? ";
-            const [result]: any = await pool.query(sql, [set, validatedData.data.resume_id]);
-            if (result.affectedRows === 0) {
-                throw "UPDATE ERROR : Resume not found or wrong ID";
-            }
-            if (result.changedRows === 0) {
-                throw "UPDATE ERROR : Resume data didn't change";
-            }
-            //  update Notification ตาม resume status
-            if (validatedData.data.resume_status && validatedData.data.resume_status === 3) {
-                let notificationSet = {
-                    notification_message: "Resume ของคุณถูกอนุมัติแล้ว",
-                    is_read: 1,
-                };
-                const sql = "UPDATE notification SET ? WHERE resume_id = ?";
-                const [notificationResult]: any = await pool.query(sql, [
-                    notificationSet,
-                    validatedData.data.resume_id,
-                ]);
-            }
-            if (validatedData.data.resume_status && validatedData.data.resume_status === 4) {
-                let notificationSet = {
-                    notification_message: "Resume ของคุณถูกปฎิเสธ กรุณาตรวจสอบ",
-                    is_read: 1,
-                };
-                const sql = "UPDATE notification SET ? WHERE resume_id = ?";
-                const [notificationResult]: any = await pool.query(sql, [
-                    notificationSet,
-                    validatedData.data.resume_id,
-                ]);
-            }
+      return {
+        message: "resume edit successfully",
+        success: true,
+        status: 200,
+      };
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  },
 
-            return {
-                message: "resume edit successfully",
-                success: true,
-                status: 200,
-            };
-        } catch (err) {
-            console.error(err);
-            throw err;
-        }
-    },
+  // adding
+  increaseSkill: async (ctx: any) => {
+    try {
+      const resume_id = ctx.user.resume_id;
+      const sql = "INSERT INTO skill (resume_id) VALUES (?)";
+      await pool.query(sql, [resume_id]);
+      return { message: "success", status: 201 };
+    } catch (err) {
+      console.log(err);
+    }
+  },
 
-    // adding
-    increaseSkill: async (ctx: any) => {
-        try {
-            const resume_id = ctx.user.resume_id;
-            const sql = "INSERT INTO skill (resume_id) VALUES (?)";
-            await pool.query(sql, [resume_id]);
-            return { message: "success", status: 201 };
-        } catch (err) {
-            console.log(err);
-        }
-    },
+  increaseSoftSkill: async (ctx: any) => {
+    const resume_id = ctx.user.resume_id;
+    try {
+      const sql = "INSERT INTO soft_skill (resume_id) VALUES (?)";
+      await pool.query(sql, [resume_id]);
+      return { message: "success", status: 201 };
+    } catch (err) {
+      console.log(err);
+    }
+  },
 
-    increaseSoftSkill: async (ctx: any) => {
-        const resume_id = ctx.user.resume_id;
-        try {
-            const sql = "INSERT INTO soft_skill (resume_id) VALUES (?)";
-            await pool.query(sql, [resume_id]);
-            return { message: "success", status: 201 };
-        } catch (err) {
-            console.log(err);
-        }
-    },
+  increaseEducationHistory: async (ctx: any) => {
+    try {
+      const resume_id = ctx.user.resume_id;
+      console.log(ctx);
+      const sql = "INSERT INTO education_history (resume_id) VALUES (?)";
+      await pool.query(sql, [resume_id]);
+      return { message: "success", status: 201 };
+    } catch (err) {
+      console.log(err);
+    }
+  },
 
-    increaseEducationHistory: async (ctx: any) => {
-        try {
-            const resume_id = ctx.user.resume_id;
-            console.log(ctx);
-            const sql = "INSERT INTO education_history (resume_id) VALUES (?)";
-            await pool.query(sql, [resume_id]);
-            return { message: "success", status: 201 };
-        } catch (err) {
-            console.log(err);
-        }
-    },
+  increaseProject: async (ctx: any) => {
+    try {
+      const resume_id = ctx.user.resume_id;
+      const sql = "INSERT INTO project (resume_id) VALUES (?)";
+      await pool.query(sql, [resume_id]);
+      return { message: "success", status: 201 };
+    } catch (err) {
+      console.log(err);
+    }
+  },
 
-    increaseProject: async (ctx: any) => {
-        try {
-            const resume_id = ctx.user.resume_id;
-            const sql = "INSERT INTO project (resume_id) VALUES (?)";
-            await pool.query(sql, [resume_id]);
-            return { message: "success", status: 201 };
-        } catch (err) {
-            console.log(err);
-        }
-    },
+  increaseExperience: async (ctx: any) => {
+    try {
+      const resume_id = ctx.user.resume_id;
+      const sql = "INSERT INTO work_experience (resume_id) VALUES (?)";
+      await pool.query(sql, [resume_id]);
+      return { message: "success", status: 201 };
+    } catch (err) {
+      console.log(err);
+    }
+  },
 
-    increaseExperience: async (ctx: any) => {
-        try {
-            const resume_id = ctx.user.resume_id;
-            const sql = "INSERT INTO work_experience (resume_id) VALUES (?)";
-            await pool.query(sql, [resume_id]);
-            return { message: "success", status: 201 };
-        } catch (err) {
-            console.log(err);
-        }
-    },
+  increaseInternship: async (ctx: any) => {
+    try {
+      const resume_id = ctx.user.resume_id;
+      const sql = "INSERT INTO internship (resume_id) VALUES (?)";
+      await pool.query(sql, [resume_id]);
+      return { message: "success", status: 201 };
+    } catch (err) {
+      console.log(err);
+    }
+  },
 
-    increaseInternship: async (ctx: any) => {
-        try {
-            const resume_id = ctx.user.resume_id;
-            const sql = "INSERT INTO internship (resume_id) VALUES (?)";
-            await pool.query(sql, [resume_id]);
-            return { message: "success", status: 201 };
-        } catch (err) {
-            console.log(err);
-        }
-    },
+  increaseTraning: async (ctx: any) => {
+    try {
+      const resume_id = ctx.user.resume_id;
+      const sql = "INSERT INTO training_history (resume_id) VALUES (?)";
+      await pool.query(sql, [resume_id]);
+      return { message: "success", status: 201 };
+    } catch (err) {
+      console.log(err);
+    }
+  },
 
-    increaseTraning: async (ctx: any) => {
-        try {
-            const resume_id = ctx.user.resume_id;
-            const sql = "INSERT INTO training_history (resume_id) VALUES (?)";
-            await pool.query(sql, [resume_id]);
-            return { message: "success", status: 201 };
-        } catch (err) {
-            console.log(err);
-        }
-    },
+  increaseAdditional: async (ctx: any) => {
+    try {
+      const resume_id = ctx.user.resume_id;
+      const sql = "INSERT INTO additional_info (resume_id) VALUES (?)";
+      await pool.query(sql, [resume_id]);
+      return { message: "success", status: 201 };
+    } catch (err) {
+      console.log(err);
+    }
+  },
 
-    increaseAdditional: async (ctx: any) => {
-        try {
-            const resume_id = ctx.user.resume_id;
-            const sql = "INSERT INTO additional_info (resume_id) VALUES (?)";
-            await pool.query(sql, [resume_id]);
-            return { message: "success", status: 201 };
-        } catch (err) {
-            console.log(err);
-        }
-    },
+  //save (edit)
+  saveSkill: async (ctx: any) => {
+    try {
+      const skill_id = ctx.params.skill_id;
+      const { skill_name, skill_type, skill_proficiency } = ctx.body;
+      const sql = `UPDATE skill SET skill_name = ?, skill_type= ?, skill_proficiency = ? WHERE skill_id = ?`;
+      const [rows]: any = await pool.query(sql, [
+        skill_name,
+        skill_type,
+        skill_proficiency,
+        skill_id,
+      ]);
+      return {
+        message: "saveSkill history saved successfully",
+        success: true,
+        status: 200,
+        insertId: rows.insertId,
+      };
+    } catch (err) {
+      console.log(err);
+    }
+  },
 
-    //save (edit)
-    saveSkill: async (ctx: any) => {
-        try {
-            const skill_id = ctx.params.skill_id;
-            const { skill_name, skill_type, skill_proficiency } = ctx.body;
-            const sql = `UPDATE skill SET skill_name = ?, skill_type= ?, skill_proficiency = ? WHERE skill_id = ?`;
-            const [rows]: any = await pool.query(sql, [skill_name, skill_type, skill_proficiency, skill_id]);
-            return {
-                message: "saveSkill history saved successfully",
-                success: true,
-                status: 200,
-                insertId: rows.insertId,
-            };
-        } catch (err) {
-            console.log(err);
-        }
-    },
+  saveSoftSkill: async (ctx: any) => {
+    try {
+      const soft_skill_id = ctx.params.soft_skill_id;
+      const { soft_skill_name, soft_skill_description } = ctx.body;
+      console.log(soft_skill_name);
+      const sql = `UPDATE soft_skill SET soft_skill_name = ?, soft_skill_description = ? WHERE soft_skill_id = ?`;
+      const [rows]: any = await pool.query(sql, [
+        soft_skill_name,
+        soft_skill_description,
+        soft_skill_id,
+      ]);
+      return {
+        message: "saveSoftSkill history saved successfully",
+        success: true,
+        status: 200,
+        insertId: rows.insertId,
+      };
+    } catch (error) {
+      throw error;
+    }
+  },
 
-    saveSoftSkill: async (ctx: any) => {
-        try {
-            const soft_skill_id = ctx.params.soft_skill_id;
-            const { soft_skill_name, soft_skill_description } = ctx.body;
-            console.log(soft_skill_name);
-            const sql = `UPDATE soft_skill SET soft_skill_name = ?, soft_skill_description = ? WHERE soft_skill_id = ?`;
-            const [rows]: any = await pool.query(sql, [soft_skill_name, soft_skill_description, soft_skill_id]);
-            return {
-                message: "saveSoftSkill history saved successfully",
-                success: true,
-                status: 200,
-                insertId: rows.insertId,
-            };
-        } catch (error) {
-            throw error;
-        }
-    },
+  saveEducationHistory: async (ctx: any) => {
+    try {
+      const education_history_id = ctx.params.education_history_id;
+      const {
+        education_history_institution,
+        education_history_major,
+        education_history_start_year,
+        education_history_gpa,
+        education_history_notes,
+      } = ctx.body;
 
-    saveEducationHistory: async (ctx: any) => {
-        try {
-            const education_history_id = ctx.params.education_history_id;
-            const {
-                education_history_institution,
-                education_history_major,
-                education_history_start_year,
-                education_history_gpa,
-                education_history_notes,
-            } = ctx.body;
-
-            const sql = `
+      const sql = `
       UPDATE education_history SET
         education_history_institution = ?,
         education_history_major = ?,
@@ -543,39 +588,39 @@ export const ResumeController = {
       WHERE education_history_id = ?
     `;
 
-            const [rows]: any = await pool.query(sql, [
-                education_history_institution,
-                education_history_major,
-                education_history_start_year,
-                education_history_gpa,
-                education_history_notes,
-                education_history_id,
-            ]);
+      const [rows]: any = await pool.query(sql, [
+        education_history_institution,
+        education_history_major,
+        education_history_start_year,
+        education_history_gpa,
+        education_history_notes,
+        education_history_id,
+      ]);
 
-            return {
-                message: "Education history saved successfully",
-                success: true,
-                status: 200,
-                insertId: rows.insertId,
-            };
-        } catch (err) {
-            console.error(err);
-            throw err;
-        }
-    },
+      return {
+        message: "Education history saved successfully",
+        success: true,
+        status: 200,
+        insertId: rows.insertId,
+      };
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  },
 
-    saveproject: async (ctx: any) => {
-        try {
-            const project_id = ctx.params.project_id;
-            const {
-                project_name,
-                project_technology_used,
-                project_description,
-                project_impact,
-                project_attachment_link,
-            } = ctx.body;
+  saveproject: async (ctx: any) => {
+    try {
+      const project_id = ctx.params.project_id;
+      const {
+        project_name,
+        project_technology_used,
+        project_description,
+        project_impact,
+        project_attachment_link,
+      } = ctx.body;
 
-            const sql = `
+      const sql = `
                   UPDATE project SET
                       project_name = ?,
                       project_technology_used = ?,
@@ -585,40 +630,40 @@ export const ResumeController = {
                     WHERE project_id = ?
                   `;
 
-            const [rows]: any = await pool.query(sql, [
-                project_name,
-                project_technology_used,
-                project_description,
-                project_impact,
-                project_attachment_link,
-                project_id,
-            ]);
+      const [rows]: any = await pool.query(sql, [
+        project_name,
+        project_technology_used,
+        project_description,
+        project_impact,
+        project_attachment_link,
+        project_id,
+      ]);
 
-            return {
-                message: "Project saved successfully",
-                success: true,
-                status: 200,
-                insertId: rows.insertId,
-            };
-        } catch (err) {
-            console.error(err);
-            throw err;
-        }
-    },
+      return {
+        message: "Project saved successfully",
+        success: true,
+        status: 200,
+        insertId: rows.insertId,
+      };
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  },
 
-    saveWorkExperience: async (ctx: any) => {
-        try {
-            const work_experience_id = ctx.params.work_experience_id;
-            const {
-                work_experience_company_name,
-                work_experience_position,
-                work_experience_start_date,
-                work_experience_end_date,
-                work_experience_description,
-                work_experience_highlight,
-            } = ctx.body;
+  saveWorkExperience: async (ctx: any) => {
+    try {
+      const work_experience_id = ctx.params.work_experience_id;
+      const {
+        work_experience_company_name,
+        work_experience_position,
+        work_experience_start_date,
+        work_experience_end_date,
+        work_experience_description,
+        work_experience_highlight,
+      } = ctx.body;
 
-            const sql = `
+      const sql = `
       UPDATE work_experience SET
         work_experience_company_name = ?,
         work_experience_position = ?,
@@ -629,41 +674,41 @@ export const ResumeController = {
       WHERE work_experience_id = ?
     `;
 
-            const [rows]: any = await pool.query(sql, [
-                work_experience_company_name,
-                work_experience_position,
-                work_experience_start_date,
-                work_experience_end_date,
-                work_experience_description,
-                work_experience_highlight,
-                work_experience_id,
-            ]);
+      const [rows]: any = await pool.query(sql, [
+        work_experience_company_name,
+        work_experience_position,
+        work_experience_start_date,
+        work_experience_end_date,
+        work_experience_description,
+        work_experience_highlight,
+        work_experience_id,
+      ]);
 
-            return {
-                message: "Work experience saved successfully",
-                success: true,
-                status: 200,
-                insertId: rows.insertId,
-            };
-        } catch (err) {
-            console.error(err);
-            throw err;
-        }
-    },
+      return {
+        message: "Work experience saved successfully",
+        success: true,
+        status: 200,
+        insertId: rows.insertId,
+      };
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  },
 
-    saveinternship: async (ctx: any) => {
-        try {
-            const internship_id = ctx.params.internship_id;
-            const {
-                internship_company_name,
-                internship_position,
-                internship_start_date,
-                internship_end_date,
-                internship_description,
-                internship_related_files,
-            } = ctx.body;
+  saveinternship: async (ctx: any) => {
+    try {
+      const internship_id = ctx.params.internship_id;
+      const {
+        internship_company_name,
+        internship_position,
+        internship_start_date,
+        internship_end_date,
+        internship_description,
+        internship_related_files,
+      } = ctx.body;
 
-            const sql = `
+      const sql = `
                   UPDATE internship SET
                       internship_company_name = ?,
                       internship_position = ?,
@@ -674,40 +719,40 @@ export const ResumeController = {
                     WHERE internship_id = ?
                   `;
 
-            const [rows]: any = await pool.query(sql, [
-                internship_company_name,
-                internship_position,
-                internship_start_date,
-                internship_end_date,
-                internship_description,
-                internship_related_files,
-                internship_id,
-            ]);
+      const [rows]: any = await pool.query(sql, [
+        internship_company_name,
+        internship_position,
+        internship_start_date,
+        internship_end_date,
+        internship_description,
+        internship_related_files,
+        internship_id,
+      ]);
 
-            return {
-                message: "Internship saved successfully",
-                success: true,
-                status: 200,
-                insertId: rows.insertId,
-            };
-        } catch (err) {
-            console.error(err);
-            throw err;
-        }
-    },
+      return {
+        message: "Internship saved successfully",
+        success: true,
+        status: 200,
+        insertId: rows.insertId,
+      };
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  },
 
-    saveTraning: async (ctx: any) => {
-        try {
-            const training_id = ctx.params.training_id;
-            const {
-                training_history_course_name,
-                training_history_organization,
-                training_history_location,
-                training_history_date,
-                training_history_certificate_file,
-            } = ctx.body;
+  saveTraning: async (ctx: any) => {
+    try {
+      const training_id = ctx.params.training_id;
+      const {
+        training_history_course_name,
+        training_history_organization,
+        training_history_location,
+        training_history_date,
+        training_history_certificate_file,
+      } = ctx.body;
 
-            const sql = `
+      const sql = `
                   UPDATE training_history SET
                       training_history_course_name = ?,
                       training_history_organization = ?,
@@ -717,195 +762,201 @@ export const ResumeController = {
                     WHERE training_history_id = ?
                   `;
 
-            const [rows]: any = await pool.query(sql, [
-                training_history_course_name,
-                training_history_organization,
-                training_history_location,
-                training_history_date,
-                training_history_certificate_file,
-                training_id,
-            ]);
+      const [rows]: any = await pool.query(sql, [
+        training_history_course_name,
+        training_history_organization,
+        training_history_location,
+        training_history_date,
+        training_history_certificate_file,
+        training_id,
+      ]);
 
-            return {
-                message: "Training saved successfully",
-                success: true,
-                status: 200,
-                insertId: rows.insertId,
-            };
-        } catch (err) {
-            console.error(err);
-            throw err;
+      return {
+        message: "Training saved successfully",
+        success: true,
+        status: 200,
+        insertId: rows.insertId,
+      };
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  },
+  // need to use upload file ⬇️
+  saveAdditionalInfo: async (ctx: any) => {
+    try {
+      const parsedFormData = await ctx.request.formData();
+      console.log(parsedFormData);
+      const additionalInfoId = ctx.params.additional_info_id;
+      // console.log(
+      //     JSON.stringify({
+      //         additional_info_title: "ทดสอบ",
+      //         additional_info_description: "คำอธิบาย",
+      //     })
+      // );
+
+      const publicUploadPath = join(process.cwd(), "public", "uploads");
+      // const allowedTypes = ["image/jpeg", "image/png", "application/pdf"];
+      const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
+      const additionalInfoData: any = {};
+      const uploaded: any = {};
+
+      for (const [key, data] of parsedFormData.entries()) {
+        if (data instanceof File) {
+          let { name, type, size } = data;
+          name = name.replaceAll(" ", "_");
+          if (!name || !type) continue;
+
+          const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+          if (size > MAX_FILE_SIZE) {
+            throw `File ${name} exceeds max size of 5MB`;
+          }
+
+          const arrayBuffer = await data.arrayBuffer();
+          const buffer = Buffer.from(arrayBuffer);
+          const uniqueFilename = `${Date.now()}_${name}`;
+          await writeFile(join(publicUploadPath, uniqueFilename), buffer);
+
+          uploaded[
+            key
+          ] = `${process.env.API_SERVER_DOMAIN}/uploads/${uniqueFilename}`;
+        } else {
+          // ✅ It's a normal field (string)
+          additionalInfoData[key] = data;
         }
-    },
-    // need to use upload file ⬇️
-    saveAdditionalInfo: async (ctx: any) => {
-        try {
-            const body = await ctx.request.json()
+      }
 
-            const parsedFormData = body;
-            const additionalInfoId = ctx.params.additional_info_id;
-            // console.log(
-            //     JSON.stringify({
-            //         additional_info_title: "ทดสอบ",
-            //         additional_info_description: "คำอธิบาย",
-            //     })
-            // );
+      if (uploaded["additional_info_file_attachment"]) {
+        additionalInfoData.additional_info_file_attachment =
+          uploaded["additional_info_file_attachment"];
+      }
 
-            const publicUploadPath = join(process.cwd(), "public", "uploads");
-            // const allowedTypes = ["image/jpeg", "image/png", "application/pdf"];
-            const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-            const uploaded: any = {};
-            let additionalInfoData: any = {};
-
-            for (const [key, data] of parsedFormData) {
-                if (data instanceof File) {
-                    let { name, type, size } = data;
-                    name = name.replaceAll(" ", "_");
-                    // console.log(`${key} : ${size}`);
-                    if (!name || !type) continue;
-                    if (size > MAX_FILE_SIZE) {
-                        throw `File ${name} exceeds max size of 5MB`;
-                    }
-                    // if (!allowedTypes.includes(type)) {
-                    //     throw `File type ${type} not allowed. Allowed: ${allowedTypes.join(", ")}`;
-                    // }
-                    const arrayBuffer = await data.arrayBuffer();
-                    const buffer = Buffer.from(arrayBuffer);
-                    const uniqueFilename = `${Date.now()}_${name}`;
-                    await writeFile(join(publicUploadPath, uniqueFilename), buffer);
-
-                    uploaded[key] = `${process.env.API_SERVER_DOMAIN}/uploads/${uniqueFilename}`;
-                }
-                if (typeof data === "string") {
-                    additionalInfoData = JSON.parse(data);
-                }
-            }
-            // merge image name to uploaded
-            additionalInfoData = Object.assign(additionalInfoData, uploaded);
-            // console.log(additionalInfoData);
-
-            const sql = `
+      const sql = `
                   UPDATE additional_info SET ?
                     WHERE additional_info_id = ?
                   `;
 
-            const [rows]: any = await pool.query(sql, [additionalInfoData, additionalInfoId]);
+      const [rows]: any = await pool.query(sql, [
+        additionalInfoData,
+        additionalInfoId,
+      ]);
 
-            return {
-                message: "Additional Info saved successfully",
-                success: true,
-                status: 200,
-                insertId: rows.insertId,
-            };
-        } catch (err) {
-            console.error(err);
-            throw err;
-        }
-    },
+      return {
+        message: "Additional Info saved successfully",
+        success: true,
+        status: 200,
+        insertId: rows.insertId,
+      };
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  },
 
-    //delete
-    deleteSkill: async (ctx: any) => {
-        const skill_id = ctx.params.skill_id;
-        try {
-            const sql = `
+  //delete
+  deleteSkill: async (ctx: any) => {
+    const skill_id = ctx.params.skill_id;
+    try {
+      const sql = `
                   DELETE FROM skill WHERE skill_id = ?
       `;
-            const [rows]: any = await pool.query(sql, [skill_id]);
-            return rows;
-        } catch (err) {
-            console.log(err);
-            throw err;
-        }
-    },
-    deleteSoftSkill: async (ctx: any) => {
-        const soft_skill_id = ctx.params.soft_skill_id;
-        try {
-            const sql = `
+      const [rows]: any = await pool.query(sql, [skill_id]);
+      return rows;
+    } catch (err) {
+      console.log(err);
+      throw err;
+    }
+  },
+  deleteSoftSkill: async (ctx: any) => {
+    const soft_skill_id = ctx.params.soft_skill_id;
+    try {
+      const sql = `
                   DELETE FROM soft_skill WHERE soft_skill_id = ?
       `;
-            const [rows]: any = await pool.query(sql, [soft_skill_id]);
-            return rows;
-        } catch (err) {
-            console.log(err);
-            throw err;
-        }
-    },
-    deleteEducationHistory: async (ctx: any) => {
-        const education_history_id = ctx.params.education_history_id;
-        try {
-            const sql = `
+      const [rows]: any = await pool.query(sql, [soft_skill_id]);
+      return rows;
+    } catch (err) {
+      console.log(err);
+      throw err;
+    }
+  },
+  deleteEducationHistory: async (ctx: any) => {
+    const education_history_id = ctx.params.education_history_id;
+    try {
+      const sql = `
                   DELETE FROM education_history WHERE education_history_id = ?
       `;
-            const [rows]: any = await pool.query(sql, [education_history_id]);
-            return rows;
-        } catch (err) {
-            console.log(err);
-            throw err;
-        }
-    },
-    deleteProject: async (ctx: any) => {
-        const project_id = ctx.params.project_id;
-        try {
-            const sql = `
+      const [rows]: any = await pool.query(sql, [education_history_id]);
+      return rows;
+    } catch (err) {
+      console.log(err);
+      throw err;
+    }
+  },
+  deleteProject: async (ctx: any) => {
+    const project_id = ctx.params.project_id;
+    try {
+      const sql = `
                   DELETE FROM project WHERE project_id = ?
       `;
-            const [rows]: any = await pool.query(sql, [project_id]);
-            return rows;
-        } catch (err) {
-            console.log(err);
-            throw err;
-        }
-    },
-    deleteWorkExperience: async (ctx: any) => {
-        const work_experience_id = ctx.params.work_experience_id;
-        try {
-            const sql = `
+      const [rows]: any = await pool.query(sql, [project_id]);
+      return rows;
+    } catch (err) {
+      console.log(err);
+      throw err;
+    }
+  },
+  deleteWorkExperience: async (ctx: any) => {
+    const work_experience_id = ctx.params.work_experience_id;
+    try {
+      const sql = `
                   DELETE FROM work_experience WHERE work_experience_id = ?
       `;
-            const [rows]: any = await pool.query(sql, [work_experience_id]);
-            return rows;
-        } catch (err) {
-            console.log(err);
-            throw err;
-        }
-    },
-    deleteInternship: async (ctx: any) => {
-        const internship_id = ctx.params.internship_id;
-        try {
-            const sql = `
+      const [rows]: any = await pool.query(sql, [work_experience_id]);
+      return rows;
+    } catch (err) {
+      console.log(err);
+      throw err;
+    }
+  },
+  deleteInternship: async (ctx: any) => {
+    const internship_id = ctx.params.internship_id;
+    try {
+      const sql = `
                   DELETE FROM internship WHERE internship_id = ?
       `;
-            const [rows]: any = await pool.query(sql, [internship_id]);
-            return rows;
-        } catch (err) {
-            console.log(err);
-            throw err;
-        }
-    },
-    deleteTraining: async (ctx: any) => {
-        const training_id = ctx.params.training_id;
-        try {
-            const sql = `
+      const [rows]: any = await pool.query(sql, [internship_id]);
+      return rows;
+    } catch (err) {
+      console.log(err);
+      throw err;
+    }
+  },
+  deleteTraining: async (ctx: any) => {
+    const training_id = ctx.params.training_id;
+    try {
+      const sql = `
                   DELETE FROM training_history WHERE training_history_id = ?
       `;
-            const [rows]: any = await pool.query(sql, [training_id]);
-            return rows;
-        } catch (err) {
-            console.log(err);
-            throw err;
-        }
-    },
-    deleteAdditionalInfo: async (ctx: any) => {
-        const additional_info_id = ctx.params.additional_info_id;
-        try {
-            const sql = `
+      const [rows]: any = await pool.query(sql, [training_id]);
+      return rows;
+    } catch (err) {
+      console.log(err);
+      throw err;
+    }
+  },
+  deleteAdditionalInfo: async (ctx: any) => {
+    const additional_info_id = ctx.params.additional_info_id;
+    try {
+      const sql = `
                   DELETE FROM additional_info WHERE additional_info_id = ?
       `;
-            const [rows]: any = await pool.query(sql, [additional_info_id]);
-            return rows;
-        } catch (err) {
-            console.log(err);
-            throw err;
-        }
-    },
+      const [rows]: any = await pool.query(sql, [additional_info_id]);
+      return rows;
+    } catch (err) {
+      console.log(err);
+      throw err;
+    }
+  },
 };
