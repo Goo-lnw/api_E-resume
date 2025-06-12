@@ -885,7 +885,7 @@ export const ResumeController = {
         const training_id = ctx.params.training_id;
         try {
             const sql = `
-                  DELETE FROM training_history WHERE training_id = ?
+                  DELETE FROM training_history WHERE training_history_id = ?
       `;
             const [rows]: any = await pool.query(sql, [training_id]);
             return rows;
