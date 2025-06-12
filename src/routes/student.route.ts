@@ -12,10 +12,16 @@ export const studentRoutes = (app: Elysia) =>
             .put("/:student_id/edit", studentController.editStudentController)
             .delete("/:student_id/delete", studentController.deleteStudentController)
 
-            .put("/edit_profile", studentController.editProfile)
+            .put("/edit_profile", UserController.editProfile)
 
             .get("/protected", UserController.getStudentSession)
+
             .get("/skill", UserController.getSkill)
-            .get("/softSkill", UserController.getSoftSkill)
-            .get("/education", UserController.getEducation)
+            .get("/soft_skill", UserController.getSoftSkill)
+            .get("/education", UserController.getEducationHistory)
+            .get("/project", UserController.getProject)
+            .get("/work_experience", UserController.getWorkExperience)
+            .get("/internship", UserController.getInternship)
+            .get("/training", UserController.getTraining)
+            .get("/additional_info", UserController.getAdditionalInfo)
     );
