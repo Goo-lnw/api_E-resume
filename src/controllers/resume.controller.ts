@@ -714,7 +714,7 @@ export const ResumeController = {
                       training_history_location = ?,
                       training_history_date = ?,
                       training_history_certificate_file = ?
-                    WHERE training_id = ?
+                    WHERE training_history_id = ?
                   `;
 
             const [rows]: any = await pool.query(sql, [
