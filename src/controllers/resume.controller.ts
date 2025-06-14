@@ -1,7 +1,7 @@
 // import { getPagination } from "../services/pagination.service";
 import { pool } from "../utils/db";
 import { z } from "zod/v4";
-import { writeFile } from "fs/promises";
+import { writeFile, unlink } from "fs/promises";
 import { join } from "path";
 import { randomUUIDv7 } from "bun";
 
@@ -729,6 +729,7 @@ export const ResumeController = {
             const additionalInfoId = ctx.params.additional_info_id;
             const additionalInfoData: any = {};
             const uploaded: any = {};
+
             for (const [key, data] of parsedFormData.entries()) {
                 if (data instanceof File) {
                     const publicUploadPath = join(process.cwd(), "public", "uploads", "additional_info");
@@ -763,8 +764,21 @@ export const ResumeController = {
                     const buffer = Buffer.from(arrayBuffer);
                     const uniqueFilename = `${Date.now()}_${name}`;
                     await writeFile(join(publicUploadPath, uniqueFilename), buffer);
-
                     uploaded[key] = `${process.env.API_SERVER_DOMAIN}/uploads/additional_info/${uniqueFilename}`;
+
+                    // if this id alredy have a file, delete it
+                    const sqlSelect = `SELECT additional_info_file_attachment FROM additional_info WHERE additional_info_id = ?`;
+                    const [additionalInfoFileResult]: any = await pool.query(sqlSelect, [additionalInfoId]);
+                    const fileAttachment = additionalInfoFileResult[0]?.additional_info_file_attachment;
+
+                    if (fileAttachment) {
+                        const fileName = fileAttachment.split("additional_info/")[1];
+                        const publicUploadPath = join(process.cwd(), "public", "uploads", "additional_info");
+                        await unlink(join(publicUploadPath, fileName));
+                    } else {
+                        console.log(`no old file data in server`);
+                    }
+                    //
                 } else {
                     additionalInfoData[key] = data;
                 }
@@ -886,13 +900,23 @@ export const ResumeController = {
         }
     },
     deleteAdditionalInfo: async (ctx: any) => {
-        const additional_info_id = ctx.params.additional_info_id;
+        const additionalInfoId = parseInt(ctx.params.additional_info_id);
         try {
+            // if this id alredy have a file, delete it
+            const sqlSelect = `SELECT additional_info_file_attachment FROM additional_info WHERE additional_info_id = ?`;
+            const [additionalInfoFileResult]: any = await pool.query(sqlSelect, [additionalInfoId]);
+            const fileAttachment = additionalInfoFileResult[0]?.additional_info_file_attachment;
+            if (fileAttachment) {
+                const fileName = fileAttachment.split("additional_info/")[1];
+                const publicUploadPath = join(process.cwd(), "public", "uploads", "additional_info");
+                await unlink(join(publicUploadPath, fileName));
+            }
+            //
             const sql = `
-                  DELETE FROM additional_info WHERE additional_info_id = ?
-      `;
-            const [rows]: any = await pool.query(sql, [additional_info_id]);
-            return rows;
+                    DELETE FROM additional_info WHERE additional_info_id = ?
+                  `;
+            const [rows]: any = await pool.query(sql, [additionalInfoId]);
+            return { rows };
         } catch (err) {
             console.log(err);
             throw err;
