@@ -1,7 +1,8 @@
 import pool from "../utils/db";
 import { z } from "zod/v4";
-import { writeFile } from "fs/promises";
+import { writeFile, unlink } from "fs/promises";
 import { join } from "path";
+import { randomUUIDv7 } from "bun";
 
 export const UserController = {
     getStudentSession: async (ctx: any) => {
@@ -181,29 +182,6 @@ export const UserController = {
     },
     editProfile: async (ctx: any) => {
         try {
-            // console.log(
-            //     JSON.stringify({
-            //         student_name: "Pattarasawan Sritad",
-            //         student_name_thai: "ภัทรสวันต์ ศรีทัด",
-            //         student_email: "680112418037@bru.ac.th",
-            //         student_phone: "0816047264",
-            //         student_profile_image: "http://localhost:8000/uploads/1749534318679_4042171.png",
-            //         graduation_gown: "http://localhost:8000/uploads/1749534318682_4086679.png",
-            //         suit: "http://localhost:8000/uploads/1749534318683_7084424.png",
-            //         religion: null,
-            //         nationality: null,
-            //         date_of_birth: "1999-04-28 00:00:00",
-            //         ethnicity: null,
-            //         hobby: null,
-            //         weight: null,
-            //         height: null,
-            //         address: null,
-            //         facebook: null,
-            //         line: null,
-            //         github: null,
-            //         position: null,
-            //     })
-            // );
             const userId = ctx.user.userId;
             const parsedFormData = await ctx.request.formData();
 
@@ -215,13 +193,32 @@ export const UserController = {
             let studentProfileData: any = {};
             for (const [key, data] of parsedFormData) {
                 if (data instanceof File) {
-                    const { name, type, size } = data;
-                    if (!name || !type) continue;
-                    if (size > MAX_FILE_SIZE) {
-                        throw `File ${name} exceeds max size of 5MB`;
+                    let { name, type, size } = data;
+                    if (!name || !type) {
+                        throw "Check your file and try again !";
                     }
                     if (!allowedTypes.includes(type)) {
                         throw `File type ${type} not allowed. Allowed: ${allowedTypes.join(", ")}`;
+                    }
+                    if (size > MAX_FILE_SIZE) {
+                        throw `File ${name} exceeds max size of 5MB`;
+                    }
+                    name = randomUUIDv7();
+                    name = name.replaceAll("-", "_");
+                    console.log(type);
+
+                    switch (type) {
+                        case "image/png":
+                            name += ".png";
+                            break;
+                        case "image/jpeg":
+                            name += ".jpg";
+                            break;
+                        case "image/webp":
+                            name += ".webp";
+                            break;
+                        default:
+                            break;
                     }
                     const arrayBuffer = await data.arrayBuffer();
                     const buffer = Buffer.from(arrayBuffer);
@@ -229,6 +226,19 @@ export const UserController = {
                     await writeFile(join(publicUploadPath, uniqueFilename), buffer);
 
                     uploaded[key] = `${process.env.API_SERVER_DOMAIN}/uploads/${uniqueFilename}`;
+
+                    // if this ID alredy have a file, delete it
+                    const sqlSelect = `SELECT \`${key}\` FROM student WHERE student_id = ?`;
+                    const [selectResult]: any = await pool.query(sqlSelect, [userId]);
+                    const imagesUrl = selectResult[0][key];
+
+                    if (imagesUrl) {
+                        const fileName = imagesUrl.split("uploads/")[1];
+                        console.log(fileName);
+
+                        await unlink(join(publicUploadPath, fileName));
+                    }
+                    //
                 }
                 if (typeof data === "string") {
                     studentProfileData = JSON.parse(data);

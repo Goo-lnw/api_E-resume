@@ -753,10 +753,14 @@ export const ResumeController = {
                             break;
                         case "image/png":
                             name += ".png";
+                            break;
                         case "image/jpeg":
                             name += ".jpg";
+                            break;
                         case "image/webp":
                             name += ".webp";
+                            break;
+
                         default:
                             break;
                     }
