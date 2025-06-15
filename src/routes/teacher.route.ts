@@ -1,15 +1,27 @@
 import { Elysia } from "elysia";
-import { bodyCreateTeacher } from "../schema/sql.schema";
+import { ActivitySchema, bodyCreateTeacher } from "../schema/sql.schema";
 import { teacherController } from "../controllers/teacher.controller";
-export const teacherRoutes = (app: Elysia) =>
-  app.group("/teacher", (app) =>
-    app
-      .get("", teacherController.getTeachers)
-      .get("/:student_id", teacherController.getTeacherById)
-      .delete("/:teacher_id/delete", teacherController.deleteTeacherController)
-      .put("/:teacher_id/edit", teacherController.editTeacherController)
-      .post("", teacherController.createTeacher, {
-        body: bodyCreateTeacher,
-      })
 
-  );
+export const teacherRoutes = (app: Elysia) =>
+    app.group("/teacher", (app) =>
+        app
+            .get("", teacherController.getTeachers)
+            .get("/:student_id", teacherController.getTeacherById)
+            .delete("/:teacher_id/delete", teacherController.deleteTeacherController)
+            .put("/:teacher_id/edit", teacherController.editTeacherController)
+            .post("", teacherController.createTeacher, {
+                body: bodyCreateTeacher,
+            })
+
+            .get("/activity", teacherController.getAllActivity)
+            .get("/activity/:activity_id", teacherController.getActivityById)
+            .post("/activity", teacherController.createActivity, {
+                body: ActivitySchema,
+                type: "multipart/form-data",
+            })
+            .put("/activity/:activity_id", teacherController.editActivity, {
+                body: ActivitySchema,
+                type: "multipart/form-data",
+            })
+            .delete("/activity/:activity_id", teacherController.deleteActivity)
+    );

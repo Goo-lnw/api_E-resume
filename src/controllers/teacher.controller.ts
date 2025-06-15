@@ -1,7 +1,10 @@
-import { getPagination } from "../services/pagination.service";
-import { getUserByEmail } from "../services/user.service";
+// import { getPagination } from "../services/pagination.service";
+// import { getUserByEmail } from "../services/user.service";
 import { pool } from "../utils/db";
-import { success, z } from "zod/v4";
+import { z } from "zod/v4";
+import { join } from "path";
+import { writeFile, unlink } from "fs/promises";
+import { randomUUIDv7 } from "bun";
 
 export const teacherController = {
     getTeachers: async () => {
@@ -34,11 +37,8 @@ export const teacherController = {
         const connection = await pool.getConnection();
         try {
             const sql = `INSERT INTO teacher (teacher_email, teacher_password) VALUES (?, ?)`;
-            const hashedPassword = await Bun.password.hash(teacher_password)
-            const [rows_insert]: any = await connection.query(sql, [
-                teacher_email,
-                hashedPassword
-            ]);
+            const hashedPassword = await Bun.password.hash(teacher_password);
+            const [rows_insert]: any = await connection.query(sql, [teacher_email, hashedPassword]);
 
             return { message: "teacher create success", success: true, status: 200 };
         } catch (err) {
@@ -86,9 +86,7 @@ export const teacherController = {
                     throw "old password wrong reentry and try again";
                 }
                 // if contain password hash pass
-                const hashedPassword = await Bun.password.hash(
-                    ValidatedEntryData.teacher_password
-                );
+                const hashedPassword = await Bun.password.hash(ValidatedEntryData.teacher_password);
                 ValidatedEntryData["teacher_password"] = hashedPassword;
                 delete ValidatedEntryData.teacher_old_password;
             } else if (
@@ -124,7 +122,6 @@ export const teacherController = {
                 success: true,
                 data: result,
             };
-
         } catch (error: any) {
             console.error("Unexpected error: ", error);
             return {
@@ -141,15 +138,178 @@ export const teacherController = {
         if (isNaN(userId)) {
             return { status: 400, sucess: false, message: "Invalid teacher ID" };
         }
-        const [result]: any = await pool.query(
-            "DELETE FROM teacher WHERE teacher_id = ?",
-            [userId]
-        );
+        const [result]: any = await pool.query("DELETE FROM teacher WHERE teacher_id = ?", [userId]);
         // console.log(result);
 
         if (result.affectedRows === 0) {
             return { status: 404, sucess: false, message: "teacher not found" };
         }
-        return { status: 200, sucess: true, message: "teacher deleted successfully", };
+        return { status: 200, sucess: true, message: "teacher deleted successfully" };
+    },
+
+    getAllActivity: async (ctx: any) => {
+        try {
+            const sql = `SELECT * FROM activity`;
+            const [rows]: any = await pool.query(sql);
+            return rows;
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    getActivityById: async (ctx: any) => {
+        try {
+            const activityId = ctx.params.activity_id;
+            const sql = `SELECT * FROM activity WHERE ?`;
+            const [rows]: any = await pool.query(sql, [activityId]);
+            return rows[0];
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    createActivity: async (ctx: any) => {
+        try {
+            const ctxBody = await ctx.body;
+            // console.log(ctxBody);
+            const activityData: any = {};
+            for (const [key, data] of Object.entries(ctxBody)) {
+                if (data instanceof File) {
+                    const publicUploadPath = join(process.cwd(), "public", "uploads", "activity");
+                    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
+                    const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+                    let { name, type, size } = data;
+                    if (!name || !type) {
+                        throw "Check your file and try again !";
+                    }
+                    if (!allowedTypes.includes(type)) {
+                        throw `File type ${type} not allowed. Allowed: ${allowedTypes.join(", ")}`;
+                    }
+                    if (size > MAX_FILE_SIZE) {
+                        throw `File ${name} exceeds max size of 5MB`;
+                    }
+                    name = randomUUIDv7();
+                    name = name.replaceAll(" ", "_");
+                    switch (type) {
+                        case "application/pdf":
+                            name += ".pdf";
+                            break;
+                        case "image/png":
+                            name += ".png";
+                            break;
+                        case "image/jpeg":
+                            name += ".jpg";
+                            break;
+                        case "image/webp":
+                            name += ".webp";
+                            break;
+                        default:
+                            break;
+                    }
+                    const arrayBuffer = await data.arrayBuffer();
+                    const buffer = Buffer.from(arrayBuffer);
+                    const uniqueFilename = `${Date.now()}_${name}`;
+                    await writeFile(join(publicUploadPath, uniqueFilename), buffer);
+                    activityData[key] = `${process.env.API_SERVER_DOMAIN}/uploads/activity/${uniqueFilename}`;
+
+                    // console.log(`${key} : ${data}`);
+                    // console.log(`${name} : ${type} : ${size}`);
+                } else {
+                    activityData[key] = data;
+                }
+            }
+
+            const sql = `INSERT INTO activity SET ?`;
+            const [rows_insert]: any = await pool.query(sql, [activityData]);
+
+            return { message: "activity was created", success: true, status: 200, detail: activityData };
+        } catch (err) {
+            throw err;
+        }
+    },
+
+    editActivity: async (ctx: any) => {
+        try {
+            const activityId = ctx.params.activity_id;
+            const ctxBody = await ctx.body;
+            const activityData: any = {};
+            const uploaded: any = {};
+            for (const [key, data] of Object.entries(ctxBody)) {
+                if (data instanceof File) {
+                    const publicUploadPath = join(process.cwd(), "public", "uploads", "activity");
+                    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
+                    const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+                    let { name, type, size } = data;
+                    if (!name || !type) {
+                        throw "Check your file and try again !";
+                    }
+                    if (!allowedTypes.includes(type)) {
+                        throw `File type ${type} not allowed. Allowed: ${allowedTypes.join(", ")}`;
+                    }
+                    if (size > MAX_FILE_SIZE) {
+                        throw `File ${name} exceeds max size of 5MB`;
+                    }
+                    name = randomUUIDv7();
+                    name = name.replaceAll(" ", "_");
+                    switch (type) {
+                        case "application/pdf":
+                            name += ".pdf";
+                            break;
+                        case "image/png":
+                            name += ".png";
+                            break;
+                        case "image/jpeg":
+                            name += ".jpg";
+                            break;
+                        case "image/webp":
+                            name += ".webp";
+                            break;
+                        default:
+                            break;
+                    }
+                    const arrayBuffer = await data.arrayBuffer();
+                    const buffer = Buffer.from(arrayBuffer);
+                    const uniqueFilename = `${Date.now()}_${name}`;
+                    await writeFile(join(publicUploadPath, uniqueFilename), buffer);
+                    activityData[key] = `${process.env.API_SERVER_DOMAIN}/uploads/activity/${uniqueFilename}`;
+
+                    // if this id alredy have a file, delete it
+                    const sqlSelect = `SELECT activity_image FROM activity WHERE activity_id = ?`;
+                    const [activityDataResult]: any = await pool.query(sqlSelect, [activityId]);
+                    const fileAttachment = activityDataResult[0]?.activity_image;
+
+                    if (fileAttachment) {
+                        const fileName = fileAttachment.split("activity/")[1];
+                        await unlink(join(publicUploadPath, fileName));
+                    } else {
+                        console.log(`no old file data in server`);
+                    }
+                    //
+                    // console.log(`${key} : ${data}`);
+                    // console.log(`${name} : ${type} : ${size}`);
+                } else {
+                    activityData[key] = data;
+                }
+            }
+
+            const sql = `UPDATE activity SET ? WHERE ?`;
+            const [rows_update]: any = await pool.query(sql, [activityData, activityId]);
+
+            return { message: "activity was edited successfully", success: true, status: 200, detail: activityData };
+        } catch (err) {
+            throw err;
+        }
+    },
+
+    deleteActivity: async (ctx: any) => {
+        try {
+            const activityId = ctx.params.activity_id;
+            const sql = `DELETE FROM activity WHERE ?`;
+            await pool.query(sql, [activityId]);
+
+            return { message: "activity was deleted sucessfully", success: true, status: 200 };
+        } catch (error) {
+            throw error;
+        }
     },
 };

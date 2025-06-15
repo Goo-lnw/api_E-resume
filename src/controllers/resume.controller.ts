@@ -736,6 +736,7 @@ export const ResumeController = {
                     const allowedTypes = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
                     const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
                     let { name, type, size } = data;
+
                     if (!name || !type) {
                         throw "Check your file and try again !";
                     }
@@ -760,7 +761,6 @@ export const ResumeController = {
                         case "image/webp":
                             name += ".webp";
                             break;
-
                         default:
                             break;
                     }
@@ -777,7 +777,6 @@ export const ResumeController = {
 
                     if (fileAttachment) {
                         const fileName = fileAttachment.split("additional_info/")[1];
-                        const publicUploadPath = join(process.cwd(), "public", "uploads", "additional_info");
                         await unlink(join(publicUploadPath, fileName));
                     } else {
                         console.log(`no old file data in server`);
