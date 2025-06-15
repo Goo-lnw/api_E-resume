@@ -35,7 +35,7 @@ export const guessController = {
                 token,
                 message: "Login successful",
                 status: 200,
-                // data: users,
+                data: users,
             };
         } catch (error) {
             console.error("Error in loginController:", error);
