@@ -312,4 +312,12 @@ export const teacherController = {
             throw error;
         }
     },
+
+    // assignActivity: async (ctx: any) => {
+    //     try {
+
+    //     } catch (error) {
+
+    //     }
+    // },
 };
