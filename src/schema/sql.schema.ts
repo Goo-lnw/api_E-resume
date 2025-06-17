@@ -83,9 +83,12 @@ export const addEducationHistorySchema = t.Object({
     education_history_gpa: t.Union([t.String(), t.Null()]),
     education_history_notes: t.Union([t.String(), t.Null()]),
 });
-export const ActivitySchema = t.Object({
+export const activitySchema = t.Object({
     activity_name: t.Optional(t.Union([t.String(), t.Null()])),
-    activity_image: t.Optional(
+    activity_description: t.Optional(t.Union([t.String(), t.Null()])),
+    activity_organization: t.Optional(t.Union([t.String(), t.Null()])),
+    activity_location: t.Optional(t.Union([t.String(), t.Null()])),
+    activity_certificate_file: t.Optional(
         t.Nullable(t.Union([t.String(), t.File({ format: "images/*" }), t.File({ format: "document/*" }), t.Null()]))
     ),
     activity_start_date: t.Optional(t.Union([t.String(), t.Null()])),

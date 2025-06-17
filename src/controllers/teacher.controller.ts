@@ -233,7 +233,6 @@ export const teacherController = {
             const activityId = ctx.params.activity_id;
             const ctxBody = await ctx.body;
             const activityData: any = {};
-            const uploaded: any = {};
             for (const [key, data] of Object.entries(ctxBody)) {
                 if (data instanceof File) {
                     const publicUploadPath = join(process.cwd(), "public", "uploads", "activity");
