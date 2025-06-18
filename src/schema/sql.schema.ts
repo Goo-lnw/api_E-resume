@@ -94,3 +94,10 @@ export const activitySchema = t.Object({
     activity_start_date: t.Optional(t.Union([t.String(), t.Null()])),
     activity_end_date: t.Optional(t.Union([t.String(), t.Null()])),
 });
+export const activityAssignSchema = t.Array(
+    t.Object({
+        resume_id: t.Number(),
+        activity_id: t.Number(),
+    }),
+    { minLength: 1 } // ต้องส่งอย่างน้อย 1 รายการ
+);
