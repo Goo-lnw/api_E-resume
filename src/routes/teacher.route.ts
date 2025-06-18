@@ -1,5 +1,10 @@
 import { Elysia } from "elysia";
-import { activitySchema, activityAssignSchema, bodyCreateTeacher } from "../schema/sql.schema";
+import {
+    activitySchema,
+    activityAssignSchema,
+    bodyCreateTeacher,
+    deleteActivityOfStudentSchema,
+} from "../schema/sql.schema";
 import { teacherController } from "../controllers/teacher.controller";
 
 export const teacherRoutes = (app: Elysia) =>
@@ -20,11 +25,15 @@ export const teacherRoutes = (app: Elysia) =>
                 body: activitySchema,
                 type: "multipart/form-data",
             })
-            .post("/activity/assign_cert", teacherController.assignActivity, { body: activityAssignSchema })
+            .post("/activity/assign_cert", teacherController.assignActivity, {
+                body: activityAssignSchema,
+            })
             .put("/activity/:activity_id", teacherController.editActivity, {
                 body: activitySchema,
                 type: "multipart/form-data",
             })
             .delete("/activity/:activity_id", teacherController.deleteActivity)
-            .delete("/activity/:activity_id/student", teacherController.deleteActivityOfStudent)
+            .delete("/activity/:activity_id/student", teacherController.deleteActivityOfStudent, {
+                body: deleteActivityOfStudentSchema,
+            })
     );

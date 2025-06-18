@@ -324,13 +324,14 @@ export const teacherController = {
 
     assignActivity: async (ctx: any) => {
         try {
-            const ctxBody = (await ctx.body) as [{ resume_id: Number; activity_id: Number }];
-            const values = ctxBody.map(({ resume_id, activity_id }) => [resume_id, activity_id]);
+            const activityId = ctx.body.activity_id;
+            const resumeId: number[] = ctx.body.resume_id;
+            const values = resumeId.map((resumeId) => [resumeId, activityId]);
 
             const sql = `INSERT INTO training_history (resume_id, activity_id) VALUES ?`;
             const [activityData]: any = await pool.query(sql, [values]);
 
-            return { message: "assigned training certificate", success: true, status: 200, detail: activityData };
+            return { message: "assigned training certificate", success: true, status: 200 };
         } catch (error) {
             throw error;
         }
