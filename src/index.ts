@@ -6,7 +6,6 @@ import routes from "./routes";
 import staticPlugin from "@elysiajs/static";
 const app = new Elysia()
   .use(cookie())
-
   .use(
     staticPlugin({
       prefix: "/",
@@ -16,11 +15,11 @@ const app = new Elysia()
   .use(jwt({ name: "jwt", secret: process.env.JWT_SECRET || "secret" }))
   .use(
     cors({
-      origin: "http://localhost:3000",
+      origin: process.env.CORS_ORIGIN || "*",
       credentials: true,
     })
   )
   .use(routes);
 
-app.listen(8000);
-console.log("🦊 Elysia running on http://localhost:8000");
+app.listen(8008);
+console.log("🦊 Elysia running on http://localhost:8008");
