@@ -89,7 +89,7 @@ export const activitySchema = t.Object({
     activity_organization: t.Optional(t.Union([t.String(), t.Null()])),
     activity_location: t.Optional(t.Union([t.String(), t.Null()])),
     activity_certificate_file: t.Optional(
-        t.Nullable(t.Union([t.String(), t.File({ format: "images/*" }), t.File({ format: "document/*" }), t.Null()]))
+        t.Union([t.Null(), t.String(), t.File({ type: "image/*" }), t.File({ type: "application/*" })])
     ),
     activity_start_date: t.Optional(t.Union([t.String(), t.Null()])),
     activity_end_date: t.Optional(t.Union([t.String(), t.Null()])),

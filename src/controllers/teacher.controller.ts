@@ -161,7 +161,7 @@ export const teacherController = {
     getActivityById: async (ctx: any) => {
         try {
             const activityId = ctx.params.activity_id;
-            const sql = `SELECT * FROM activity WHERE ?`;
+            const sql = `SELECT * FROM activity WHERE activity_id = ?`;
             const [rows]: any = await pool.query(sql, [activityId]);
             return rows;
         } catch (error) {
@@ -254,9 +254,14 @@ export const teacherController = {
         try {
             const activityId = ctx.params.activity_id;
             const ctxBody = await ctx.body;
+            // console.log(activityId);
+            console.log(ctxBody);
+
             const activityData: any = {};
             for (const [key, data] of Object.entries(ctxBody)) {
                 if (data instanceof File) {
+                    console.log(data);
+
                     const publicUploadPath = join(process.cwd(), "public", "uploads", "activity");
                     const allowedTypes = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
                     const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -295,9 +300,9 @@ export const teacherController = {
                     activityData[key] = `${process.env.API_SERVER_DOMAIN}/uploads/activity/${uniqueFilename}`;
 
                     // if this id alredy have a file, delete it
-                    const sqlSelect = `SELECT activity_image FROM activity WHERE activity_id = ?`;
+                    const sqlSelect = `SELECT activity_certificate_file FROM activity WHERE activity_id = ?`;
                     const [activityDataResult]: any = await pool.query(sqlSelect, [activityId]);
-                    const fileAttachment = activityDataResult[0]?.activity_image;
+                    const fileAttachment = activityDataResult[0]?.activity_certificate_file;
 
                     if (fileAttachment) {
                         const fileName = fileAttachment.split("activity/")[1];
@@ -313,10 +318,10 @@ export const teacherController = {
                 }
             }
 
-            const sql = `UPDATE activity SET ? WHERE ?`;
+            const sql = `UPDATE activity SET ? WHERE activity_id = ?`;
             const [rows_update]: any = await pool.query(sql, [activityData, activityId]);
 
-            return { message: "activity was edited successfully", success: true, status: 200, detail: activityData };
+            return { message: "activity was edited successfully", success: true, status: 200 };
         } catch (err) {
             throw err;
         }
@@ -340,7 +345,20 @@ export const teacherController = {
     deleteActivity: async (ctx: any) => {
         try {
             const activityId = ctx.params.activity_id;
-            const sql = `DELETE FROM activity WHERE ?`;
+            // if this id alredy have a file, delete it
+            const sqlSelect = `SELECT activity_certificate_file FROM activity WHERE activity_id = ?`;
+            const [activityDataResult]: any = await pool.query(sqlSelect, [activityId]);
+            const fileAttachment = activityDataResult[0]?.activity_certificate_file;
+
+            if (fileAttachment) {
+                const publicUploadPath = join(process.cwd(), "public", "uploads", "activity");
+                const fileName = fileAttachment.split("activity/")[1];
+                await unlink(join(publicUploadPath, fileName));
+            } else {
+                console.log(`no old file data in server`);
+            }
+            //
+            const sql = `DELETE FROM activity WHERE activity_id = ?`;
             await pool.query(sql, [activityId]);
 
             return { message: "activity was deleted sucessfully", success: true, status: 200 };

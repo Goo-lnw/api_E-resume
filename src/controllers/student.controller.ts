@@ -33,11 +33,24 @@ export const studentController = {
 
     getStudentWithResumeId: async () => {
         try {
-            const sql = `SELECT student.student_id, resume.resume_id, student.student_name, 
-	                    student.student_name_thai,student.student_main_id, 
-                        student.student_profile_image, student.graduation_gown, student.suit,
-                        student.student_email, student.student_phone
-                    FROM student INNER JOIN resume WHERE resume.student_id = student.student_id `;
+            const sql = `SELECT 
+                            student.student_id,
+                            resume.resume_id,
+                            student.student_name, 
+                            student.student_name_thai,
+                            student.student_main_id, 
+                            student.student_profile_image,
+                            student.graduation_gown,
+                            student.suit,
+                            student.student_email,
+                            student.student_phone
+                        FROM 
+                            student
+                        INNER JOIN 
+                            resume ON resume.student_id = student.student_id
+                        ORDER BY 
+                            student.student_main_id;
+                        `;
             const [rows]: any = await pool.query(sql);
             return rows;
         } catch (error) {
