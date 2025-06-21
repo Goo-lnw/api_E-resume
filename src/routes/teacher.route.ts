@@ -17,6 +17,8 @@ export const teacherRoutes = (app: Elysia) =>
             .post("", teacherController.createTeacher, {
                 body: bodyCreateTeacher,
             })
+            .get("/not_in_activity/:activity_id", teacherController.getStudentByNoActivityId)
+            .get("/in_activity/:activity_id", teacherController.getStudentByActivityId)
 
             .get("/activity", teacherController.getAllActivity)
             .get("/activity/:activity_id", teacherController.getActivityById)

@@ -408,7 +408,7 @@ export const UserController = {
         const auth_id = ctx.user.userId;
         try {
             const sql = `
-                  SELECT training.* FROM training_history AS training
+                  SELECT training_history.* FROM training_history AS training
                   JOIN resume on training.resume_id = resume.resume_id 
                   JOIN student on student.student_id = resume.student_id 
                   WHERE student.student_id = ?
