@@ -1,5 +1,5 @@
 import mysql from "mysql2/promise";
-import { config } from "../../config/db.config";
+import { config } from "../../config/db.config.ts";
 
 export const pool = mysql.createPool({
   host: config.db.host,
@@ -7,6 +7,7 @@ export const pool = mysql.createPool({
   user: config.db.user,
   password: config.db.password,
   database: config.db.database,
+  dateStrings: true,
 });
 
 export default pool;
