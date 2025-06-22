@@ -16,23 +16,28 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          debug: true
+          port: 22
+          timeout: 30s
+          command_timeout: 10m
+          sync: false
+          use_insecure_cipher: false
+          script_stop: false
           script: |
-            cd /path/to/api_E-resume
+            cd /home/xver/eWeb/api_E-resume
             git reset --hard HEAD
             git clean -fd
             git pull origin main
-
             bun install
 
-            # ส่ง environment variables จาก GitHub Secrets
-            export DB_HOST=${{ secrets.DB_HOST }}
-            export DB_PORT=${{ secrets.DB_PORT }}
-            export DB_USER=${{ secrets.DB_USER }}
-            export DB_NAME=${{ secrets.DB_NAME }}
-            export DB_PASS=${{ secrets.DB_PASS }}
-            export SECRET_KEY=${{ secrets.SECRET_KEY }}
-            export API_KEY=${{ secrets.API_KEY }}
-            export CORS_ORIGIN=${{ secrets.CORS_ORIGIN }}
-            export API_SERVER_DOMAIN=${{ secrets.API_SERVER_DOMAIN }}
-            pm2 restart api-e-resume || pm2 start "bun src/index.ts" --name api-e-resume
+            echo "DB_HOST=${{ secrets.DB_HOST }}" > .env
+            echo "DB_PORT=${{ secrets.DB_PORT }}" >> .env
+            echo "DB_USER=${{ secrets.DB_USER }}" >> .env
+            echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
+            echo "DB_PASS=${{ secrets.DB_PASS }}" >> .env
+            echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> .env
+            echo "API_KEY=${{ secrets.API_KEY }}" >> .env
+            echo "CORS_ORIGIN=${{ secrets.CORS_ORIGIN }}" >> .env
+            echo "API_SERVER_DOMAIN=${{ secrets.API_SERVER_DOMAIN }}" >> .env
+
+            pm2 restart api-e-resume --update-env || pm2 start "bun run dev" --name api-e-resume --env production
+
