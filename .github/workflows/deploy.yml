@@ -27,9 +27,9 @@ jobs:
           timeout: 30s
           command_timeout: 10m
           script: |
-            export PATH="$HOME/.bun/bin:$PATH"
+            export PATH="/home/xver/.bun/bin:/home/xver/.nvm/versions/node/v22.16.0/bin:$PATH"
 
-            cd /home/${{ secrets.VPS_USER }}/eWeb/api_E-resume
+            cd /home/xver/eWeb/api_E-resume
 
             git reset --hard HEAD
             git clean -fd
@@ -47,7 +47,8 @@ jobs:
             echo "CORS_ORIGIN=${{ secrets.CORS_ORIGIN }}" >> .env
             echo "API_SERVER_DOMAIN=${{ secrets.API_SERVER_DOMAIN }}" >> .env
 
-            ~/.bun/bin/pm2 restart api-e-resume --update-env || ~/.bun/bin/pm2 start bun --interpreter bun --name api-e-resume -- src/index.ts
-            ~/.bun/bin/pm2 save
+            pm2 restart api-e-resume --update-env || pm2 start bun --interpreter bun --name api-e-resume -- src/index.ts
+            pm2 save
+
 
 
