@@ -16,6 +16,7 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
+          debug: true
           script: |
             cd /path/to/api_E-resume
             git reset --hard HEAD
@@ -34,5 +35,4 @@ jobs:
             export API_KEY=${{ secrets.API_KEY }}
             export CORS_ORIGIN=${{ secrets.CORS_ORIGIN }}
             export API_SERVER_DOMAIN=${{ secrets.API_SERVER_DOMAIN }}
-
             pm2 restart api-e-resume || pm2 start "bun src/index.ts" --name api-e-resume
