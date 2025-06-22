@@ -1,0 +1,54 @@
+name: 🚀 Deploy Bun + Elysia to VPS
+
+on:
+  push:
+    branches:
+      - main   # เมื่อ push ไป branch main ให้รัน deploy อัตโนมัติ
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 👉 เพิ่ม VPS IP เข้า known_hosts เพื่อให้ SSH ผ่านได้
+      - name: Add VPS to known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+      # 👉 SSH แล้วสั่ง Pull + Install + สร้าง .env + PM2 restart
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.VPS_HOST }}           # IP VPS เช่น 185.84.160.236
+          username: ${{ secrets.VPS_USER }}       # ชื่อ user บน VPS เช่น xver
+          key: ${{ secrets.VPS_SSH_KEY }}         # Private Key ของ SSH (เก็บใน Secrets)
+          port: 22
+          timeout: 30s
+          command_timeout: 10m
+          script: |
+            export PATH="/home/xver/.bun/bin:/home/xver/.nvm/versions/node/v22.16.0/bin:$PATH"
+
+            cd /home/xver/eWeb/api_E-resume
+
+            git reset --hard HEAD
+            git clean -fd
+            git pull origin main
+
+            bun install
+
+            echo "DB_HOST=${{ secrets.DB_HOST }}" > .env
+            echo "DB_PORT=${{ secrets.DB_PORT }}" >> .env
+            echo "DB_USER=${{ secrets.DB_USER }}" >> .env
+            echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
+            echo "DB_PASS=${{ secrets.DB_PASS }}" >> .env
+            echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> .env
+            echo "API_KEY=${{ secrets.API_KEY }}" >> .env
+            echo "CORS_ORIGIN=${{ secrets.CORS_ORIGIN }}" >> .env
+            echo "API_SERVER_DOMAIN=${{ secrets.API_SERVER_DOMAIN }}" >> .env
+
+            pm2 restart api-e-resume --update-env || pm2 start bun --interpreter bun --name api-e-resume -- src/index.ts
+            pm2 save
+
+
+
