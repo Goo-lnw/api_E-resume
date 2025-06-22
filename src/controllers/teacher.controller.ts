@@ -161,29 +161,71 @@ export const teacherController = {
     getActivityById: async (ctx: any) => {
         try {
             const activityId = ctx.params.activity_id;
-            const sql = `SELECT * FROM activity WHERE ?`;
+            const sql = `SELECT * FROM activity WHERE activity_id = ?`;
             const [rows]: any = await pool.query(sql, [activityId]);
             return rows;
         } catch (error) {
             throw error;
         }
     },
-
+    // ⬇️ for use in this Controller
+    getActivityData: async (activityId: Number) => {
+        try {
+            // const activityId = ctx.params.activity_id;
+            const sql = `SELECT activity.activity_name as activity_course_name,
+                            activity.activity_organization,
+                            activity.activity_location,
+                            activity.activity_certificate_file,
+                            activity.activity_start_date as activity_date
+                        FROM activity
+                        WHERE activity_id = ?`;
+            const [rows]: any = await pool.query(sql, [activityId]);
+            return rows;
+        } catch (error) {
+            throw error;
+        }
+    },
     getStudentByActivityId: async (ctx: any) => {
         try {
             const activityId = ctx.params.activity_id;
             const sql = `SELECT 
-	                training_history.training_history_id,
-	                student.student_name,
-                    student.student_name_thai,
+                    student.student_id,
+                    resume.resume_id,
                     student.student_main_id,
-                    activity.*
-                FROM training_history
-	                LEFT JOIN resume on training_history.resume_id = resume.resume_id
+                    student.student_name_thai,
+	                student.student_name
+                FROM connect_activity
+	                LEFT JOIN resume on connect_activity.resume_id = resume.resume_id
                     LEFT JOIN student on resume.student_id = student.student_id
-                    LEFT JOIN activity on training_history.activity_id =  activity.activity_id
-                WHERE training_history.activity_id = ?`;
+                    LEFT JOIN activity on connect_activity.activity_id =  activity.activity_id
+                WHERE connect_activity.activity_id = ?`;
             const [rows]: any = await pool.query(sql, [activityId]);
+            return rows;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    },
+
+    getStudentByNoActivityId: async (ctx: any) => {
+        try {
+            const aid = ctx.params.activity_id;
+            const sql = `SELECT DISTINCT
+                                student.student_id,
+                                resume.resume_id,
+                                student.student_main_id,
+                                student.student_name_thai,
+                                student.student_name
+                            FROM
+                                student
+                            JOIN resume ON resume.student_id = student.student_id
+                            LEFT JOIN connect_activity 
+                                ON connect_activity.resume_id = resume.resume_id 
+                                AND connect_activity.activity_id = ?
+                            WHERE
+                                connect_activity.resume_id IS NULL;
+                            `;
+            const [rows]: any = await pool.query(sql, [aid]);
             return rows;
         } catch (error) {
             throw error;
@@ -254,9 +296,14 @@ export const teacherController = {
         try {
             const activityId = ctx.params.activity_id;
             const ctxBody = await ctx.body;
+            // console.log(activityId);
+            console.log(ctxBody);
+
             const activityData: any = {};
             for (const [key, data] of Object.entries(ctxBody)) {
                 if (data instanceof File) {
+                    console.log(data);
+
                     const publicUploadPath = join(process.cwd(), "public", "uploads", "activity");
                     const allowedTypes = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
                     const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -295,9 +342,9 @@ export const teacherController = {
                     activityData[key] = `${process.env.API_SERVER_DOMAIN}/uploads/activity/${uniqueFilename}`;
 
                     // if this id alredy have a file, delete it
-                    const sqlSelect = `SELECT activity_image FROM activity WHERE activity_id = ?`;
+                    const sqlSelect = `SELECT activity_certificate_file FROM activity WHERE activity_id = ?`;
                     const [activityDataResult]: any = await pool.query(sqlSelect, [activityId]);
-                    const fileAttachment = activityDataResult[0]?.activity_image;
+                    const fileAttachment = activityDataResult[0]?.activity_certificate_file;
 
                     if (fileAttachment) {
                         const fileName = fileAttachment.split("activity/")[1];
@@ -313,24 +360,62 @@ export const teacherController = {
                 }
             }
 
-            const sql = `UPDATE activity SET ? WHERE ?`;
+            const sql = `UPDATE activity SET ? WHERE activity_id = ?`;
             const [rows_update]: any = await pool.query(sql, [activityData, activityId]);
 
-            return { message: "activity was edited successfully", success: true, status: 200, detail: activityData };
+            return { message: "activity was edited successfully", success: true, status: 200 };
         } catch (err) {
             throw err;
         }
     },
 
-    assignActivity: async (ctx: any) => {
+    checkInActivity: async (ctx: any) => {
         try {
-            const ctxBody = (await ctx.body) as [{ resume_id: Number; activity_id: Number }];
-            const values = ctxBody.map(({ resume_id, activity_id }) => [resume_id, activity_id]);
+            const activityId = ctx.body.activity_id;
+            const resumeId: number[] = ctx.body.resume_id;
 
-            const sql = `INSERT INTO training_history (resume_id, activity_id) VALUES ?`;
-            const [activityData]: any = await pool.query(sql, [values]);
+            const values = resumeId.map((resumeId) => [resumeId, activityId]);
+            console.log(values);
 
-            return { message: "assigned training certificate", success: true, status: 200, detail: activityData };
+            const sql = `INSERT INTO connect_activity (resume_id, activity_id) VALUES ?`;
+            const [result]: any = await pool.query(sql, [values]);
+
+            return { message: "assigned training certificate", success: true, status: 200 };
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    assignActivityCert: async (ctx: any) => {
+        try {
+            const activityId = ctx.body.activity_id;
+            const resumeId: number[] = ctx.body.resume_id;
+            const [activityData] = await teacherController.getActivityData(activityId);
+            // console.log(activityData);
+
+            const trainingHistory: any = {};
+            for (const key in activityData) {
+                const newKey = key.replace(/^activity_/, "training_history_");
+                trainingHistory[newKey] = activityData[key];
+            }
+
+            const values = resumeId.map((resumeId) => ({
+                ...trainingHistory,
+                resume_id: resumeId,
+                activity_id: activityId,
+            }));
+            // console.log(values);
+
+            const columns = Object.keys(values[0]);
+            const placeholders = values.map(() => `(${columns.map(() => "?").join(", ")})`).join(", ");
+            const flatValues = values.flatMap(Object.values);
+            const sql = `INSERT INTO training_history (${columns.join(", ")}) VALUES ${placeholders}`;
+            // console.log(sql);
+            // console.log(flatValues);
+
+            const [result]: any = await pool.query(sql, [...flatValues]);
+
+            return { message: "assigned training certificate", success: true, status: 200 };
         } catch (error) {
             throw error;
         }
@@ -339,7 +424,20 @@ export const teacherController = {
     deleteActivity: async (ctx: any) => {
         try {
             const activityId = ctx.params.activity_id;
-            const sql = `DELETE FROM activity WHERE ?`;
+            // if this id alredy have a file, delete it
+            const sqlSelect = `SELECT activity_certificate_file FROM activity WHERE activity_id = ?`;
+            const [activityDataResult]: any = await pool.query(sqlSelect, [activityId]);
+            const fileAttachment = activityDataResult[0]?.activity_certificate_file;
+
+            if (fileAttachment) {
+                const publicUploadPath = join(process.cwd(), "public", "uploads", "activity");
+                const fileName = fileAttachment.split("activity/")[1];
+                await unlink(join(publicUploadPath, fileName));
+            } else {
+                console.log(`no old file data in server`);
+            }
+            //
+            const sql = `DELETE FROM activity WHERE activity_id = ?`;
             await pool.query(sql, [activityId]);
 
             return { message: "activity was deleted sucessfully", success: true, status: 200 };
@@ -348,15 +446,18 @@ export const teacherController = {
         }
     },
 
-    deleteActivityOfStudent: async (ctx: any) => {
+    deleteActivityStudentCheckin: async (ctx: any) => {
         try {
-            const activityId = ctx.params.activity_id;
-            const ctxBody = ctx.body;
-            const sql = `DELETE FROM 
-                            training_history
-                        WHERE activity_id = ? 
-                        AND resume_id IN (?)`;
-            const [deletedActivity]: any = await pool.query(sql, [activityId, ctxBody]);
+            const activityId = parseInt(ctx.params.activity_id);
+            const { resume_id } = ctx.body;
+            console.log(resume_id);
+
+            const placeholders = resume_id.map(() => "?").join(", ");
+            const sql = `DELETE FROM connect_activity
+                        WHERE activity_id = ?
+                        AND resume_id IN (${placeholders})
+                        `;
+            const [deletedActivity]: any = await pool.query(sql, [activityId, ...resume_id]);
 
             return { message: "activity was deleted sucessfully", success: true, status: 200 };
         } catch (error) {

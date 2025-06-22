@@ -1,21 +1,23 @@
 import { pool } from "../utils/db";
 import { z } from "zod/v4";
-
+import { getPagination } from "../services/pagination.service";
 export const studentController = {
-    getStudents: async () => {
+    getStudents: async ({ query }: any) => {
+        const page = parseInt(query.page) || 1;
+        const limit = parseInt(query.limit) || 10;
+
         try {
-            const sql = `SELECT 
-                    student_id , 
-                    student_name, 
-                    student_email,
-                    student_main_id, 
-                    student_phone, 
-                    student_phone 
-                FROM 
-                    student`;
-            const [rows]: any = await pool.query(sql);
+            const rows: any = await getPagination("student", page, limit);
+            if (!rows) {
+                return {
+                    message: "No students found",
+                    success: false,
+                    status: 404,
+                };
+            }
             return rows;
         } catch (error) {
+            console.log("Error fetching students: ", error);
             throw error;
         }
     },
@@ -33,17 +35,32 @@ export const studentController = {
 
     getStudentWithResumeId: async () => {
         try {
-            const sql = `SELECT student.student_id, resume.resume_id, student.student_name, 
-	                    student.student_name_thai,student.student_main_id, 
-                        student.student_profile_image, student.graduation_gown, student.suit,
-                        student.student_email, student.student_phone
-                    FROM student INNER JOIN resume WHERE resume.student_id = student.student_id `;
+            const sql = `SELECT 
+                            student.student_id,
+                            resume.resume_id,
+                            student.student_name, 
+                            student.student_name_thai,
+                            student.student_main_id, 
+                            student.student_profile_image,
+                            student.graduation_gown,
+                            student.suit,
+                            student.student_email,
+                            student.student_phone
+                        FROM 
+                            student
+                        INNER JOIN 
+                            resume ON resume.student_id = student.student_id
+                        
+                        ORDER BY 
+                            student.student_main_id;
+                        `;
             const [rows]: any = await pool.query(sql);
             return rows;
         } catch (error) {
             throw error;
         }
     },
+
     createStudent: async (ctx: any) => {
         const {
             student_email,

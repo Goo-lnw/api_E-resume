@@ -38,22 +38,20 @@ export const UserController = {
                     student.graduation_gown,
                     student.suit,
                     training_history.*,
-                    work_experience.*,
-                    activity.*
-                  FROM
+                    work_experience.*
+                FROM
                     resume
-                    LEFT JOIN student ON resume.student_id = student.student_id
-                    LEFT JOIN internship ON resume.resume_id = internship.resume_id
-                    LEFT JOIN skill ON resume.resume_id = skill.resume_id
-                    LEFT JOIN training_history ON resume.resume_id = training_history.resume_id
-                    LEFT JOIN activity ON training_history.activity_id = activity.activity_id
-                    LEFT JOIN work_experience ON resume.resume_id = work_experience.resume_id
-                    LEFT JOIN notification ON resume.resume_id = notification.resume_id AND student.student_id = notification.student_id
-                    LEFT JOIN additional_info ON resume.resume_id = additional_info.resume_id
-                    LEFT JOIN education_history ON resume.resume_id = education_history.resume_id 
-                    LEFT JOIN soft_skill ON resume.resume_id = soft_skill.resume_id
-                    LEFT JOIN project ON resume.resume_id = project.resume_id 
-                    WHERE resume.student_id = ?`;
+                LEFT JOIN student ON resume.student_id = student.student_id
+                LEFT JOIN internship ON resume.resume_id = internship.resume_id
+                LEFT JOIN skill ON resume.resume_id = skill.resume_id
+                LEFT JOIN training_history ON resume.resume_id = training_history.resume_id
+                LEFT JOIN work_experience ON resume.resume_id = work_experience.resume_id
+                LEFT JOIN notification ON resume.resume_id = notification.resume_id AND student.student_id = notification.student_id
+                LEFT JOIN additional_info ON resume.resume_id = additional_info.resume_id
+                LEFT JOIN education_history ON resume.resume_id = education_history.resume_id 
+                LEFT JOIN soft_skill ON resume.resume_id = soft_skill.resume_id
+                LEFT JOIN project ON resume.resume_id = project.resume_id 
+                WHERE resume.student_id = ?`;
 
             const [rows]: any = await pool.query(sql, [auth_id]);
 
@@ -143,13 +141,7 @@ export const UserController = {
             }));
 
             const training = groupByUnique(["training_history_id"], rows).map((row) => ({
-                activity_name: row.activity_name,
-                activity_certificate_file: row.activity_image,
-                activity_description: row.activity_description,
-                activity_location: row.activity_location,
-                activity_organization: row.activity_organization,
-                activity_start_date: row.activity_start_date,
-                activity_end_date: row.activity_end_date,
+                training_history_activity_id: row.activity_id,
                 training_history_course_name: row.training_history_course_name,
                 training_history_organization: row.training_history_organization,
                 training_history_location: row.training_history_location,
@@ -408,7 +400,7 @@ export const UserController = {
         const auth_id = ctx.user.userId;
         try {
             const sql = `
-                  SELECT training.* FROM training_history AS training
+                  SELECT training_history.* FROM training_history AS training
                   JOIN resume on training.resume_id = resume.resume_id 
                   JOIN student on student.student_id = resume.student_id 
                   WHERE student.student_id = ?
