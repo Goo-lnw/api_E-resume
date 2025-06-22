@@ -27,18 +27,13 @@ jobs:
           timeout: 30s
           command_timeout: 10m
           script: |
-            # 🔑 ไปยังโฟลเดอร์โปรเจกต์บน VPS
-            cd /home/${{ secrets.VPS_USER }}/eWeb/api_E-resume
-
-            # 🔄 ดึงโค้ดล่าสุด
+            export PATH="$HOME/.bun/bin:$HOME/.npm-global/bin:$PATH"
+            cd /home/xver/eWeb/api_E-resume
             git reset --hard HEAD
             git clean -fd
             git pull origin main
-
-            # 📦 ติดตั้ง dependencies ด้วย Bun
             bun install
 
-            # 🔐 สร้างไฟล์ .env จาก Secrets
             echo "DB_HOST=${{ secrets.DB_HOST }}" > .env
             echo "DB_PORT=${{ secrets.DB_PORT }}" >> .env
             echo "DB_USER=${{ secrets.DB_USER }}" >> .env
@@ -49,8 +44,7 @@ jobs:
             echo "CORS_ORIGIN=${{ secrets.CORS_ORIGIN }}" >> .env
             echo "API_SERVER_DOMAIN=${{ secrets.API_SERVER_DOMAIN }}" >> .env
 
-            # 🔄 รีสตาร์ท PM2 ถ้ามีอยู่แล้ว หรือรันใหม่ถ้าไม่มี
             pm2 restart api-e-resume --update-env || pm2 start bun --interpreter bun --name api-e-resume -- src/index.ts
 
-            # 💾 บันทึกค่า process ของ PM2 เพื่อรันต่อได้แม้ VPS รีบูต
             pm2 save
+
