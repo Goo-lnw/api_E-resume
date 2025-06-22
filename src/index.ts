@@ -12,10 +12,10 @@ const app = new Elysia()
       assets: "./public",
     })
   )
-  .use(jwt({ name: "jwt", secret: process.env.JWT_SECRET || "secret" }))
+  .use(jwt({ name: "jwt", secret: process.env.JWT_SECRET }))
   .use(
     cors({
-      origin: process.env.CORS_ORIGIN || "*",
+      origin: process.env.CORS_ORIGIN || "/*",
       credentials: true,
     })
   )
