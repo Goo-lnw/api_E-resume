@@ -1,45 +1,56 @@
-name: Deploy to VPS
+name: 🚀 Deploy Bun + Elysia to VPS
 
 on:
   push:
     branches:
-      - main
+      - main   # เมื่อ push ไป branch main ให้รัน deploy อัตโนมัติ
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
+      # 👉 เพิ่ม VPS IP เข้า known_hosts เพื่อให้ SSH ผ่านได้
+      - name: Add VPS to known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+      # 👉 SSH แล้วสั่ง Pull + Install + สร้าง .env + PM2 restart
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v0.1.10
         with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
+          host: ${{ secrets.VPS_HOST }}           # IP VPS เช่น 185.84.160.236
+          username: ${{ secrets.VPS_USER }}       # ชื่อ user บน VPS เช่น xver
+          key: ${{ secrets.VPS_SSH_KEY }}         # Private Key ของ SSH (เก็บใน Secrets)
           port: 22
           timeout: 30s
           command_timeout: 10m
-          sync: false
-          use_insecure_cipher: false
-          script_stop: false
           script: |
-            cd /home/xver/eWeb/api_E-resume
+            # 🔑 ไปยังโฟลเดอร์โปรเจกต์บน VPS
+            cd /home/${{ secrets.VPS_USER }}/eWeb/api_E-resume
+
+            # 🔄 ดึงโค้ดล่าสุด
             git reset --hard HEAD
             git clean -fd
             git pull origin main
+
+            # 📦 ติดตั้ง dependencies ด้วย Bun
             bun install
 
-      -   name: Generate .env file
-          run: |
-              echo "DB_HOST=${{ secrets.DB_HOST }}" > .env
-              echo "DB_PORT=${{ secrets.DB_PORT }}" >> .env
-              echo "DB_USER=${{ secrets.DB_USER }}" >> .env
-              echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
-              echo "DB_PASS=${{ secrets.DB_PASS }}" >> .env
-              echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> .env
-              echo "API_KEY=${{ secrets.API_KEY }}" >> .env
-              echo "CORS_ORIGIN=${{ secrets.CORS_ORIGIN }}" >> .env
-              echo "API_SERVER_DOMAIN=${{ secrets.API_SERVER_DOMAIN }}" >> .env
+            # 🔐 สร้างไฟล์ .env จาก Secrets
+            echo "DB_HOST=${{ secrets.DB_HOST }}" > .env
+            echo "DB_PORT=${{ secrets.DB_PORT }}" >> .env
+            echo "DB_USER=${{ secrets.DB_USER }}" >> .env
+            echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
+            echo "DB_PASS=${{ secrets.DB_PASS }}" >> .env
+            echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> .env
+            echo "API_KEY=${{ secrets.API_KEY }}" >> .env
+            echo "CORS_ORIGIN=${{ secrets.CORS_ORIGIN }}" >> .env
+            echo "API_SERVER_DOMAIN=${{ secrets.API_SERVER_DOMAIN }}" >> .env
 
-              pm2 restart api-e-resume --update-env || pm2 start "bun run dev" --name api-e-resume --env production
+            # 🔄 รีสตาร์ท PM2 ถ้ามีอยู่แล้ว หรือรันใหม่ถ้าไม่มี
+            pm2 restart api-e-resume --update-env || pm2 start bun --interpreter bun --name api-e-resume -- src/index.ts
 
+            # 💾 บันทึกค่า process ของ PM2 เพื่อรันต่อได้แม้ VPS รีบูต
+            pm2 save
