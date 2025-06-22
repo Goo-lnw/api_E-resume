@@ -446,7 +446,7 @@ export const teacherController = {
         }
     },
 
-    deleteActivityOfStudent: async (ctx: any) => {
+    deleteActivityStudentCheckin: async (ctx: any) => {
         try {
             const activityId = parseInt(ctx.params.activity_id);
             const { resume_id } = ctx.body;
