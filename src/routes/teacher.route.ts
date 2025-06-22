@@ -17,17 +17,19 @@ export const teacherRoutes = (app: Elysia) =>
             .post("", teacherController.createTeacher, {
                 body: bodyCreateTeacher,
             })
-            .get("/not_in_activity/:activity_id", teacherController.getStudentByNoActivityId)
-            .get("/in_activity/:activity_id", teacherController.getStudentByActivityId)
 
             .get("/activity", teacherController.getAllActivity)
             .get("/activity/:activity_id", teacherController.getActivityById)
-            .get("/activity/:activity_id/student", teacherController.getStudentByActivityId)
+            .get("/activity/student_not_in/:activity_id", teacherController.getStudentByNoActivityId)
+            .get("/activity/student_in/:activity_id", teacherController.getStudentByActivityId)
             .post("/activity", teacherController.createActivity, {
                 body: activitySchema,
                 type: "multipart/form-data",
             })
-            .post("/activity/assign_cert", teacherController.assignActivity, {
+            .post("/activity/check_in", teacherController.checkInActivity, {
+                body: activityAssignSchema,
+            })
+            .post("/activity/assign_cert", teacherController.assignActivityCert, {
                 body: activityAssignSchema,
             })
             .put("/activity/:activity_id", teacherController.editActivity, {
@@ -35,7 +37,7 @@ export const teacherRoutes = (app: Elysia) =>
                 type: "multipart/form-data",
             })
             .delete("/activity/:activity_id", teacherController.deleteActivity)
-            .delete("/activity/:activity_id/student", teacherController.deleteActivityOfStudent, {
+            .delete("/activity/student/:activity_id", teacherController.deleteActivityStudentCheckin, {
                 body: deleteActivityOfStudentSchema,
             })
     );
