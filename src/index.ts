@@ -22,6 +22,6 @@ const app = new Elysia()
     })
   )
   .use(routes)
-  .get("/", () => "Hello from Elysia! running on port 8008 on VPS")
+  .get("/", () => "Hello from Elysia! running on port 8008 on VPS with CICD action bro!");
 app.listen(8008);
 console.log("🦊 Elysia running on http://localhost:8008");
