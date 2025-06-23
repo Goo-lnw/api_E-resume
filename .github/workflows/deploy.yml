@@ -47,7 +47,8 @@ jobs:
             echo "CORS_ORIGIN=${{ secrets.CORS_ORIGIN }}" >> .env
             echo "API_SERVER_DOMAIN=${{ secrets.API_SERVER_DOMAIN }}" >> .env
 
-            pm2 restart api-e-resume --update-env || pm2 start bun --interpreter bun --name api-e-resume -- src/index.ts
+           
+            pm2 restart apiresume --update-env || pm2 start bun --interpreter bun --name apiresume -- src/index.ts
             pm2 save
 
 
