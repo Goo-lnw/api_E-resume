@@ -17,11 +17,11 @@ const app = new Elysia()
 
   .use(
     cors({
-      origin: process.env.CORS_ORIGIN ,
+      origin: process.env.CORS_ORIGIN,
       credentials: true,
     })
   )
-  .use(routes);
-
+  .use(routes)
+  .get("/", () => "Hello from Elysia! running on port 8008 on VPS")
 app.listen(8008);
 console.log("🦊 Elysia running on http://localhost:8008");
