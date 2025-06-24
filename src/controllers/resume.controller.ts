@@ -471,7 +471,7 @@ export const ResumeController = {
             console.log(err);
         }
     },
-    increaseTraning: async (ctx: any) => {
+    increaseTraining: async (ctx: any) => {
         try {
             const resume_id = ctx.user.resume_id;
             const sql = "INSERT INTO training_history (resume_id) VALUES (?)";
@@ -696,45 +696,91 @@ export const ResumeController = {
             throw err;
         }
     },
-    saveTraning: async (ctx: any) => {
+    saveTraining: async (ctx: any) => {
         try {
-            const training_id = ctx.params.training_id;
-            const {
-                training_history_course_name,
-                training_history_organization,
-                training_history_location,
-                training_history_date,
-                training_history_certificate_file,
-            } = ctx.body;
+            const parsedFormData = await ctx.body;
+            const training_history_id = ctx.params.training_id;
+            const trainingHistoryData: any = {};
+            const uploaded: any = {};
+            // console.log(parsedFormData);
+
+            for (const [key, data] of Object.entries(parsedFormData)) {
+                if (data instanceof File) {
+                    const publicUploadPath = join(process.cwd(), "public", "uploads", "training_history");
+                    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+                    const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+                    let { name, type, size } = data;
+
+                    if (!name || !type) {
+                        throw "Check your file and try again !";
+                    }
+                    if (!allowedTypes.includes(type)) {
+                        throw `File type ${type} not allowed. Allowed: ${allowedTypes.join(", ")}`;
+                    }
+                    if (size > MAX_FILE_SIZE) {
+                        throw `File ${name} exceeds max size of 5MB`;
+                    }
+                    name = randomUUIDv7();
+                    name = name.replaceAll(" ", "_");
+                    switch (type) {
+                        case "application/pdf":
+                            name += ".pdf";
+                            break;
+                        case "image/png":
+                            name += ".png";
+                            break;
+                        case "image/jpeg":
+                            name += ".jpg";
+                            break;
+                        case "image/webp":
+                            name += ".webp";
+                            break;
+                        default:
+                            break;
+                    }
+                    const arrayBuffer = await data.arrayBuffer();
+                    const buffer = Buffer.from(arrayBuffer);
+                    const uniqueFilename = `${Date.now()}_${name}`;
+                    await writeFile(join(publicUploadPath, uniqueFilename), buffer);
+                    uploaded[key] = `${process.env.API_SERVER_DOMAIN}/uploads/training_history/${uniqueFilename}`;
+                    console.log(uploaded[key]);
+
+                    // if this id alredy have a file, delete it
+                    const sqlSelect = `SELECT training_history_certificate_file FROM training_history WHERE training_history_id = ?`;
+                    const [trainingHistoryInfoFileResult]: any = await pool.query(sqlSelect, [training_history_id]);
+                    const fileAttachment = trainingHistoryInfoFileResult[0]?.training_history_certificate_file;
+
+                    if (fileAttachment) {
+                        const fileName = fileAttachment.split("training_history/")[1];
+                        await unlink(join(publicUploadPath, fileName));
+                    } else {
+                        console.log(`no old file data in server`);
+                    }
+                    //
+                } else {
+                    trainingHistoryData[key] = data;
+                }
+            }
+
+            if (uploaded["training_history_certificate_file"]) {
+                trainingHistoryData.training_history_certificate_file = uploaded["training_history_certificate_file"];
+            }
 
             const sql = `
-                  UPDATE training_history SET
-                      training_history_course_name = ?,
-                      training_history_organization = ?,
-                      training_history_location = ?,
-                      training_history_date = ?,
-                      training_history_certificate_file = ?
+                  UPDATE training_history SET ?
                     WHERE training_history_id = ?
                   `;
 
-            const [rows]: any = await pool.query(sql, [
-                training_history_course_name,
-                training_history_organization,
-                training_history_location,
-                training_history_date,
-                training_history_certificate_file,
-                training_id,
-            ]);
+            const [rows]: any = await pool.query(sql, [trainingHistoryData, training_history_id]);
 
             return {
                 message: "Training saved successfully",
                 success: true,
                 status: 200,
-                insertId: rows.insertId,
+                // insertId: rows.insertId,
             };
-        } catch (err) {
-            console.error(err);
-            throw err;
+        } catch (error) {
+            console.error(error);
         }
     },
     saveAdditionalInfo: async (ctx: any) => {
@@ -906,6 +952,19 @@ export const ResumeController = {
     deleteTraining: async (ctx: any) => {
         const training_id = ctx.params.training_id;
         try {
+            const publicUploadPath = join(process.cwd(), "public", "uploads", "training_history");
+
+            // if this id alredy have a file, delete it
+            const sqlSelect = `SELECT training_history_certificate_file FROM training_history WHERE training_history_id = ?`;
+            const [trainingHistoryInfoFileResult]: any = await pool.query(sqlSelect, [training_id]);
+            const fileAttachment = trainingHistoryInfoFileResult[0]?.training_history_certificate_file;
+            if (fileAttachment) {
+                const fileName = fileAttachment.split("training_history/")[1];
+                await unlink(join(publicUploadPath, fileName));
+            } else {
+                console.log(`no old file data in server`);
+            }
+            //
             const sql = `
                   DELETE FROM training_history WHERE training_history_id = ?
       `;

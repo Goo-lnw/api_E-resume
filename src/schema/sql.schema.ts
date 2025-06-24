@@ -61,8 +61,8 @@ export const addTraningSchema = t.Object({
     training_history_course_name: t.Union([t.String(), t.Null()]),
     training_history_organization: t.Union([t.String(), t.Null()]),
     training_history_location: t.Union([t.String(), t.Null()]),
-    training_history_date: t.Union([t.String(), t.Null()]),
-    training_history_certificate_file: t.Union([t.String(), t.Null()]),
+    training_history_date: t.Optional(t.Union([t.String(), t.Null()])),
+    training_history_certificate_file: t.Optional(t.Union([t.Null(), t.String(), t.File({ type: "image/*" })])),
 });
 
 export const addSoftSkillSchema = t.Object({
