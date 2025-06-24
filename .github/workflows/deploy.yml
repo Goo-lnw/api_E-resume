@@ -3,7 +3,7 @@ name: 🚀 Deploy Bun + Elysia to VPS
 on:
   push:
     branches:
-      - main   # เมื่อ push ไป branch main ให้รัน deploy อัตโนมัติ
+      - main # เมื่อ push ไป branch main ให้รัน deploy อัตโนมัติ
 
 jobs:
   deploy:
@@ -20,9 +20,9 @@ jobs:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v0.1.10
         with:
-          host: ${{ secrets.VPS_HOST }}           # IP VPS เช่น 185.84.160.236
-          username: ${{ secrets.VPS_USER }}       # ชื่อ user บน VPS เช่น xver
-          key: ${{ secrets.VPS_SSH_KEY }}         # Private Key ของ SSH (เก็บใน Secrets)
+          host: ${{ secrets.VPS_HOST }} # IP VPS เช่น 185.84.160.236
+          username: ${{ secrets.VPS_USER }} # ชื่อ user บน VPS เช่น xver
+          key: ${{ secrets.VPS_SSH_KEY }} # Private Key ของ SSH (เก็บใน Secrets)
           port: 22
           timeout: 30s
           command_timeout: 10m
@@ -36,9 +36,6 @@ jobs:
             git pull origin main
 
             bun install
-           
+
             pm2 restart  api_e-resume --update-env || pm2 start bun --interpreter bun --name  api_e-resume -- src/index.ts
             pm2 save
-
-
-
