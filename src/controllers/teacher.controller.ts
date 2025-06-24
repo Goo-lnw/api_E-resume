@@ -518,4 +518,19 @@ export const teacherController = {
             throw error;
         }
     },
+    deleteStudentActivityCert: async (ctx: any) => {
+        const resume_id = ctx.body.resume_id;
+        const activity_id = parseInt(ctx.params.activity_id);
+        try {
+            const placeholders = resume_id.map(() => "?").join(", ");
+            const sql = `
+                      DELETE FROM training_history WHERE activity_id = ? AND resume_id IN (${placeholders})
+          `;
+            const [rows]: any = await pool.query(sql, [activity_id, ...resume_id]);
+            return rows;
+        } catch (err) {
+            console.log(err);
+            throw err;
+        }
+    },
 };
