@@ -36,17 +36,6 @@ jobs:
             git pull origin main
 
             bun install
-
-            echo "DB_HOST=${{ secrets.DB_HOST }}" > .env
-            echo "DB_PORT=${{ secrets.DB_PORT }}" >> .env
-            echo "DB_USER=${{ secrets.DB_USER }}" >> .env
-            echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
-            echo "DB_PASS=${{ secrets.DB_PASS }}" >> .env
-            echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> .env
-            echo "API_KEY=${{ secrets.API_KEY }}" >> .env
-            echo "CORS_ORIGIN=${{ secrets.CORS_ORIGIN }}" >> .env
-            echo "API_SERVER_DOMAIN=${{ secrets.API_SERVER_DOMAIN }}" >> .env
-
            
             pm2 restart  api_e-resume --update-env || pm2 start bun --interpreter bun --name  api_e-resume -- src/index.ts
             pm2 save
