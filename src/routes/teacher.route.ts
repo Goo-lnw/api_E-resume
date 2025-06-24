@@ -23,7 +23,7 @@ export const teacherRoutes = (app: Elysia) =>
             .get("/activity/student_not_in/:activity_id", teacherController.getStudentByNoActivityId)
             .get("/activity/student_in/:activity_id", teacherController.getStudentByActivityId)
             .get("/activity/student_no_cert/:activity_id", teacherController.getStudentActivityCertNotExist)
-            .get("/activity/student_no_cert/:activity_id", teacherController.getStudentActivityCertExist)
+            .get("/activity/student_cert/:activity_id", teacherController.getStudentActivityCertExist)
             .post("/activity", teacherController.createActivity, {
                 body: activitySchema,
                 type: "multipart/form-data",
