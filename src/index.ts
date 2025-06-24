@@ -14,14 +14,14 @@ const app = new Elysia()
     )
 
     .use(jwt({ name: "jwt", secret: process.env.SECRET_KEY || "default_secret" }))
-
     .use(
-        cors({
-            origin: process.env.CORS_ORIGIN,
-            credentials: true,
-        })
+      cors({
+        origin: process.env.CORS_ORIGIN,
+        credentials: true,
+      })
     )
-    .use(routes);
+  .use(routes)
+  .get("/", () => "Hello from Elysia! running on port 8008 on VPS with CICD action bro!");
 
 app.listen(8008);
 console.log("🦊 Elysia running on http://localhost:8008");
