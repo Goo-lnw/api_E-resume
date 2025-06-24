@@ -185,6 +185,7 @@ export const teacherController = {
             throw error;
         }
     },
+
     getStudentByActivityId: async (ctx: any) => {
         try {
             const activityId = ctx.params.activity_id;
@@ -232,6 +233,59 @@ export const teacherController = {
         }
     },
 
+    getStudentActivityCertNotExist: async (ctx: any) => {
+        try {
+            const aid = ctx.params.activity_id;
+            const sql = `SELECT 
+                    		student.student_id,
+                    		resume.resume_id, 
+                    		student.student_main_id,
+                    		student.student_name_thai,
+                    		student.student_name
+                        FROM connect_activity
+                    		LEFT JOIN resume on connect_activity.resume_id = resume.resume_id
+                    		LEFT JOIN student on resume.student_id = student.student_id
+                    		LEFT JOIN activity on connect_activity.activity_id =  activity.activity_id
+                        WHERE connect_activity.activity_id = ?
+                        AND NOT EXISTS (
+                            SELECT 1
+                            FROM training_history
+                            WHERE training_history.resume_id = resume.resume_id
+                            AND training_history.activity_id = ?
+                        )`;
+            const [rows]: any = await pool.query(sql, [aid, aid]);
+            return rows;
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    getStudentActivityCertExist: async (ctx: any) => {
+        try {
+            const aid = ctx.params.activity_id;
+            const sql = `SELECT 
+                    		student.student_id,
+                    		resume.resume_id, 
+                    		student.student_main_id,
+                    		student.student_name_thai,
+                    		student.student_name
+                        FROM connect_activity
+                    		LEFT JOIN resume on connect_activity.resume_id = resume.resume_id
+                    		LEFT JOIN student on resume.student_id = student.student_id
+                    		LEFT JOIN activity on connect_activity.activity_id =  activity.activity_id
+                        WHERE connect_activity.activity_id = ?
+                        AND EXISTS (
+                            SELECT 1
+                            FROM training_history
+                            WHERE training_history.resume_id = resume.resume_id
+                            AND training_history.activity_id = ?
+                        )`;
+            const [rows]: any = await pool.query(sql, [aid, aid]);
+            return rows;
+        } catch (error) {
+            throw error;
+        }
+    },
     createActivity: async (ctx: any) => {
         try {
             const ctxBody = await ctx.body;
