@@ -699,10 +699,12 @@ export const ResumeController = {
     saveTraining: async (ctx: any) => {
         try {
             const parsedFormData = await ctx.body;
-            const training_history_id = ctx.params.training_id;
+            const training_history_id = parseInt(ctx.params.training_id);
+            console.log(training_history_id);
+
             const trainingHistoryData: any = {};
             const uploaded: any = {};
-            // console.log(parsedFormData);
+            console.log(parsedFormData);
 
             for (const [key, data] of Object.entries(parsedFormData)) {
                 if (data instanceof File) {
