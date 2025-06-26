@@ -704,7 +704,7 @@ export const ResumeController = {
             const training_history_id = parseInt(ctx.params.training_id);
             const trainingHistoryData: any = {};
             const uploaded: any = {};
-            // console.log(parsedFormData);
+            console.log(parsedFormData);
 
             for (const [key, data] of Object.entries(parsedFormData)) {
                 if (data instanceof File) {
