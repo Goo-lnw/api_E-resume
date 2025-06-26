@@ -7,13 +7,8 @@ export const guessController = {
             const { email, password } = body;
             const users = await getUserByEmail(email);
             if (!users || Object.keys(users).length === 0) {
-                console.log("User not found:", email);
                 set.status = 401;
-                return {
-                    status: 401,
-                    success: false,
-                    message: "Invalid credentials",
-                };
+                throw new Error("Invalid credentials");
             }
 
             const isValid = await Bun.password.verify(password, users.password);
