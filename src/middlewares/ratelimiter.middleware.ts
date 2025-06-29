@@ -1,9 +1,9 @@
 import { rateLimit } from "elysia-rate-limit";
 
 export const rateLimitMiddleware = rateLimit({
-    duration: 60_000, // 1 นาที
-    max: 30, // จำกัด 30 requests ต่อ IP
-    errorResponse: new Response("rate-limited", {
+    duration: 60000,
+    max: 60,
+    errorResponse: new Response("too many request,please slow down", {
         status: 429,
         headers: new Headers({
             "Content-Type": "text/plain",

@@ -184,7 +184,7 @@ export const UserController = {
     editProfile: async (ctx: any) => {
         try {
             const userId = ctx.user.userId;
-            const parsedFormData = await ctx.request.formData();
+            const parsedFormData = await ctx.body;
 
             // prepare upload image
             const publicUploadPath = join(process.cwd(), "public", "uploads");
@@ -192,7 +192,7 @@ export const UserController = {
             const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
             const uploaded: any = {};
             let studentProfileData: any = {};
-            for (const [key, data] of parsedFormData) {
+            for (const [key, data] of Object.entries(parsedFormData)) {
                 if (data instanceof File) {
                     let { name, type, size } = data;
                     if (!name || !type) {
