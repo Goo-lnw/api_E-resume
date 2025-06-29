@@ -17,7 +17,6 @@ export const notificationController = {
             const [rows]: any = await pool.query(sql, ctx.user.userId);
             return notificationDetail;
         } catch (error) {
-            throw error;
-        }
+            throw error;}
     }
 };
