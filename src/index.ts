@@ -19,6 +19,7 @@ const app = new Elysia()
     .use(jwt({ name: "jwt", secret: process.env.SECRET_KEY || "default_secret" }))
     .use(
         cors({
+
             origin: process.env.CORS_ORIGIN,
             credentials: true,
         })
