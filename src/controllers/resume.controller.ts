@@ -699,7 +699,9 @@ export const ResumeController = {
     saveTraining: async (ctx: any) => {
         try {
             const parsedFormData = await ctx.body;
-            const training_history_id = ctx.params.training_id;
+            // console.log(parsedFormData);
+
+            const training_history_id = parseInt(ctx.params.training_id);
             const trainingHistoryData: any = {};
             const uploaded: any = {};
             // console.log(parsedFormData);
@@ -758,6 +760,9 @@ export const ResumeController = {
                     }
                     //
                 } else {
+                    if (data === `null`) {
+                        continue;
+                    }
                     trainingHistoryData[key] = data;
                 }
             }
@@ -785,12 +790,12 @@ export const ResumeController = {
     },
     saveAdditionalInfo: async (ctx: any) => {
         try {
-            const parsedFormData = await ctx.request.formData();
+            const parsedFormData = await ctx.body;
             const additionalInfoId = ctx.params.additional_info_id;
             const additionalInfoData: any = {};
             const uploaded: any = {};
 
-            for (const [key, data] of parsedFormData.entries()) {
+            for (const [key, data] of Object.entries(parsedFormData)) {
                 if (data instanceof File) {
                     const publicUploadPath = join(process.cwd(), "public", "uploads", "additional_info");
                     const allowedTypes = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
