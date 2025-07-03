@@ -11,21 +11,14 @@ export const studentRoutes = (app: Elysia) =>
       .post("", studentController.createStudent, { body: bodyCreateStudent })
       .put("/:student_id/edit", studentController.editStudentController)
       .delete("/:student_id/delete", studentController.deleteStudentController)
-
-      .post("/edit_profile", UserController.editProfile)
-
-      .post(
-        "/protected",
-        {
-          body: {
-            multipart: {
-              maxFileSize: 100 * 1024 * 1024,
-            },
+      .post("/edit_profile", UserController.editProfile, {
+        body: {
+          multipart: {
+            maxFileSize: 100 * 1024 * 1024,
           },
         },
-        UserController.getStudentSession
-      )
-
+      })
+      .get("/protected", UserController.getStudentSession)
       .get("/skill", UserController.getSkill)
       .get("/soft_skill", UserController.getSoftSkill)
       .get("/education", UserController.getEducationHistory)
