@@ -14,12 +14,12 @@ export const studentRoutes = (app: Elysia) =>
 
       .post("/edit_profile", UserController.editProfile)
 
-      .get(
+      .post(
         "/protected",
         {
           body: {
             multipart: {
-              maxFileSize: 100 * 1024 * 1024, 
+              maxFileSize: 100 * 1024 * 1024,
             },
           },
         },
