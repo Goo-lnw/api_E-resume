@@ -12,7 +12,7 @@ export const studentRoutes = (app: Elysia) =>
       .put("/:student_id/edit", studentController.editStudentController)
       .delete("/:student_id/delete", studentController.deleteStudentController)
 
-      .put("/edit_profile", UserController.editProfile)
+      .post("/edit_profile", UserController.editProfile)
 
       .get("/protected", UserController.getStudentSession)
 
