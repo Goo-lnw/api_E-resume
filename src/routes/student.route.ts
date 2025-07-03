@@ -19,7 +19,7 @@ export const studentRoutes = (app: Elysia) =>
         {
           body: {
             multipart: {
-              maxFileSize: 20 * 1024 * 1024, // 20 MB
+              maxFileSize: 100 * 1024 * 1024, 
             },
           },
         },
