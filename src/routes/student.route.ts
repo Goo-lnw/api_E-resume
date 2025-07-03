@@ -12,7 +12,13 @@ export const studentRoutes = (app: Elysia) =>
       .put("/:student_id/edit", studentController.editStudentController)
       .delete("/:student_id/delete", studentController.deleteStudentController)
 
-      .post("/edit_profile", UserController.editProfile)
+      .post(
+        "/edit_profile",
+        {
+          maxRequestBodySize: 20 * 1024 * 1024, 
+        },
+        UserController.editProfile
+      )
 
       .get("/protected", UserController.getStudentSession)
 
