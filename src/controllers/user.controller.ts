@@ -189,7 +189,7 @@ export const UserController = {
             // prepare upload image
             const publicUploadPath = join(process.cwd(), "public", "uploads");
             const allowedTypes = ["image/jpeg", "image/png"];
-            const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+            const MAX_FILE_SIZE = 100 * 1024 * 1024; // 5MB
             const uploaded: any = {};
             let studentProfileData: any = {};
             for (const [key, data] of Object.entries(parsedFormData)) {
