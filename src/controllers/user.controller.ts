@@ -3,7 +3,7 @@ import { z } from "zod/v4";
 import { writeFile, unlink } from "fs/promises";
 import { join } from "path";
 import { randomUUIDv7 } from "bun";
-
+import { fileTypeFromBuffer } from "file-type";
 export const UserController = {
   getStudentSession: async (ctx: any) => {
     const auth_id = ctx.user.userId;
@@ -195,18 +195,25 @@ export const UserController = {
       const userId = ctx.user.userId;
       const parsedFormData = await ctx.body;
 
-      
       console.log(parsedFormData);
 
       // prepare upload image
       const publicUploadPath = join(process.cwd(), "public", "uploads");
-      const allowedTypes = ["image/jpeg", "image/png"];
-      const MAX_FILE_SIZE = 100 * 1024 * 1024; // 5MB
+      const allowedTypes = [
+        "image/png",
+        "image/x-png",
+        "image/jpeg",
+        "image/jpg",
+        "image/webp",
+      ];
+
+      const MAX_FILE_SIZE = 100 * 1024 * 1024;
       const uploaded: any = {};
       let studentProfileData: any = {};
       for (const [key, data] of Object.entries(parsedFormData)) {
         if (data instanceof File) {
           let { name, type, size } = data;
+
           if (!name || !type) {
             throw "Check your file and try again !";
           }
@@ -216,7 +223,9 @@ export const UserController = {
             )}`;
           }
           if (size > MAX_FILE_SIZE) {
-            throw `File ${name} exceeds max size of 5MB`;
+            throw `File ${name} exceeds max size of ${
+              MAX_FILE_SIZE / (1024 * 1024)
+            }MB`;
           }
           name = randomUUIDv7();
           name = name.replaceAll("-", "_");
@@ -237,6 +246,10 @@ export const UserController = {
           }
           const arrayBuffer = await data.arrayBuffer();
           const buffer = Buffer.from(arrayBuffer);
+          const fileType = await fileTypeFromBuffer(buffer);
+          if (!allowedTypes.includes(fileType?.mime)) {
+            throw `Invalid file content type: ${fileType?.mime || "unknown"}`;
+          }
           const uniqueFilename = `${Date.now()}_${name}`;
           await writeFile(join(publicUploadPath, uniqueFilename), buffer);
 
