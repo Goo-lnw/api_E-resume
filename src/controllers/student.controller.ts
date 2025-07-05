@@ -25,6 +25,8 @@ export const studentController = {
     getStudentById: async (ctx: any) => {
         try {
             const student_id = ctx.params.student_id;
+            // console.log(ctx.params);
+
             const sql = `SELECT * FROM student WHERE student_id = ? `;
             const [rows]: any = await pool.query(sql, [student_id]);
             return rows[0];
@@ -116,6 +118,8 @@ export const studentController = {
         try {
             const userId: number = parseInt(ctx.params.student_id);
             const data = ctx.body;
+            // console.log(ctx.body);
+
             const userEntry = z.object({
                 student_main_id: z.string().optional().nullable(),
                 student_name: z.string().optional().nullable(),
@@ -142,7 +146,7 @@ export const studentController = {
                 ValidatedEntryData.student_password !== undefined
             ) {
                 const oldUserData = await studentController.getStudentById(ctx);
-                const oldPass = oldUserData.data.student_password;
+                const oldPass = oldUserData.student_password;
                 const oldPassEntry = ctx.body.student_old_password;
                 const passCompare = await Bun.password.verify(oldPassEntry, oldPass);
                 if (!passCompare) {
